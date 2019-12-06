@@ -1,0 +1,8 @@
+nbproject
+node_modules
+Dockerfile
+.dockerignore
+bower.json
+bower_components
+.git
+.gitignore
