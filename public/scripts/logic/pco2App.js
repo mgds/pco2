@@ -30,6 +30,42 @@ pco2App.config(
         templateUrl: 'inc/about_inc.html',
         controller: 'aboutView'
       }).
+      when('/dataProxies', {
+        templateUrl: 'inc/dataProxies_inc.html',
+        controller: 'aboutView'
+      }).
+      when('/proxiesPhytoplankton', {
+        templateUrl: 'inc/phytoplankton_inc.html',
+        controller: 'aboutView'
+      }).
+      when('/proxiesPaleosols', {
+        templateUrl: 'inc/paleosols_inc.html',
+        controller: 'aboutView'
+      }).
+      when('/proxiesLiverworts', {
+        templateUrl: 'inc/liverworts_inc.html',
+        controller: 'aboutView'
+      }).
+      when('/proxiesLeafCarbon', {
+        templateUrl: 'inc/landplantproxy_inc.html',
+        controller: 'aboutView'
+      }).
+      when('/proxiesBoron', {
+        templateUrl: 'inc/boron_inc.html',
+        controller: 'aboutView'
+      }).
+      when('/proxiesNahcolite', {
+        templateUrl: 'inc/nahcolite_inc.html',
+        controller: 'aboutView'
+      }).
+      when('/proxiesStomatal', {
+        templateUrl: 'inc/stomatal_inc.html',
+        controller: 'aboutView'
+      }).
+      when('/proxiesLeafGas', {
+        templateUrl: 'inc/leafgas_inc.html',
+        controller: 'aboutView'
+      }).
       when('/privacy', {
         templateUrl: 'inc/privacy_inc.html',
         controller: 'aboutView'
