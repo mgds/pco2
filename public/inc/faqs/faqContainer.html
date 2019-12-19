@@ -1,0 +1,22 @@
+<div id="idxcontent"></div>
+<div style="background-color:#b19f7e;width:100%;color:white;line-height:30px;margin-bottom:30px;">
+    <div class="container">
+        <div class='clearfix' style="background-color:#e5decf;color:#0c448b;">
+            <div class="col-xs-12 text-left" style="background-color:#e5decf;color:#0c448b;font-size:24px;padding-top:20px;padding-bottom:20px;font-family:'Oswald'">
+<div ng-bind-html='faq.question | trust'></div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container">
+  <div class="row" style="margin-bottom:30px;">
+    <div class='col-xs-12'>
+    <ol class="breadcrumb">
+      <li><a href="/">Home</a></li>
+      <li><a href="/faqs">FAQs</a></li>
+    </ol></div>
+    <div class="col-md-12">
+        <div ng-include="'/inc/faqs/'+faq.prefix+'long.html'"></div>
+    </div>
+  </div>
+</div>

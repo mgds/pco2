@@ -1,0 +1,30 @@
+<div id="idxcontent"></div>
+<div style="background-color:#b19f7e;width:100%;color:white;line-height:30px;margin-bottom:30px;">
+    <div class="container">
+        <div class='clearfix' style="background-color:#e5decf;color:#0c448b;">
+            <div class="col-xs-12 text-left" style="background-color:#e5decf;color:#0c448b;font-size:24px;padding-top:20px;padding-bottom:20px;font-family:'Oswald'">
+Frequently Asked Questions
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container">
+  <div class="row" style="margin-bottom:30px;">
+    <div class='col-xs-12'>
+    <ol class="breadcrumb">
+      <li><a href="/">Home</a></li>
+      <li><a href="/faqs">FAQs</a></li>
+    </ol></div>
+      <div class="col-xs-12 col-lg-8" ng-repeat="faq in faqs">
+          <h4 style='color:#b19f7e' class="collapsible" data-toggle="collapse" data-target="#{{faq.prefix}}div">
+          <span class='glyphicon glyphicon-menu-right'></span>
+          <span ng-bind-html='faq.question | trust'></span>
+          </h4>
+          <div class='collapse1' id='{{faq.prefix}}div'>
+              <div ng-include="'/inc/faqs/'+faq.prefix+'short.html'"></div>
+              <div> <a href="/faq/{{$index}}">More info...</a></div>
+          </div>
+      <hr style='border:1px solid #b19f7e'>
+    </div>
+  </div>
+</div>
