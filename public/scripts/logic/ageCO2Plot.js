@@ -19,40 +19,102 @@ class Legend {
   constructor(innerSvg,plot,box_boolean = false) {
     this.plot = plot
     this.innerSvg = innerSvg
-    this.entries = []
+    this.entries = {}
     this.box_boolean = box_boolean
+    this.position = [(0.8*plot.dimensions.innerWidth),10]
     this.spacing = 20
     //this.relative_position = [90,10]
   }
   addEntry(entry) {
-    this.entries.push(entry)
+    name = entry.name
+    this.entries[name] = (entry)
   }
-  draw(position) {
-    var x_start = position[0]
-    var y_start = position[1]
+  draw() {
+    var x_start = this.position[0]
+    var y_start = this.position[1]
+    var i = 0
 
     this.legend_group = this.innerSvg.append("g")
                                       .attr("transform","translate("+x_start+","+y_start+")")
 
-    this.entries.forEach((item, i) => {
-      item.position = [0,y_start+(i*this.spacing)]
-      this.legend_group.append("circle")
-                    .attr("cx",item.position[0])
-                    .attr("cy",item.position[1])
-                    .attr("r",5)
-                    .style("fill",item.color)
-                    .on("click",()=>this.itemClicked(item.name))
-      this.legend_group.append("text")
-                    .text(item.name)
-                    .attr("transform","translate("+(item.position[0]+10)+","+(item.position[1]+5)+")")
-                    .style("text-anchor","start")
-                    .style("fill","#000000")
-                    .on("click",()=>this.itemClicked(item.name))
-    });
+    var entry_array = []
+    for (var name in this.entries) {
+        var item = this.entries[name]
+        entry_array.push(item)
+        item.position = [0,y_start+(i*this.spacing)]
+        i++
+      }
+
+        this.legend_group.selectAll("circle")
+                          .data(entry_array)
+                          .enter()
+                          .append("circle")
+                            .attr("cx",function(d){return d.position[0]})
+                            .attr("cy",function(d){return d.position[1]})
+                            .attr("r",5)
+                            .style("fill",function(d){return d.color})
+                            .on("click",(d)=>this.itemClicked(d))
+        this.legend_group.selectAll("text")
+                          .data(entry_array)
+                          .enter()
+                          .append("text")
+                            .text(function(d){return d.name})
+                            .attr("x",function(d){return d.position[0]+10})
+                            .attr("y",function(d){return d.position[1]+5})
+                            .attr("font-size", "16px")
+                            .on("click",(d)=>this.itemClicked(d))
+
+                            //.attr("transform","translate("+(item.position[0]+10)+","+(item.position[1]+5)+")")
+                            //.style("text-anchor","start")
+                            //.style("fill","#000000")
   }
-  itemClicked(name) {
-    console.log(this.plot)
-    this.plot.redrawPoints(false,function(d){return d.method!=name;})
+  redraw() {
+    var x_start = this.position[0]
+    var y_start = this.position[1]
+    var i = 0
+
+    //this.legend_group = this.innerSvg.append("g")
+    //                                  .attr("transform","translate("+x_start+","+y_start+")")
+
+    var entry_array = []
+    for (var name in this.entries) {
+        var item = this.entries[name]
+        entry_array.push(item)
+        item.position = [0,y_start+(i*this.spacing)]
+        i++
+      }
+
+        this.legend_group.selectAll("circle")
+                          .data(entry_array)
+                            .attr("cx",function(d){return d.position[0]})
+                            .attr("cy",function(d){return d.position[1]})
+                            .attr("r",5)
+                            .style("fill",function(d){return d.color})
+                            .style("opacity",function(d){
+                              if (d.draw) {return 1}
+                              else {return 0.3}
+                            })
+                            .on("click",(d)=>this.itemClicked(d))
+        this.legend_group.selectAll("text")
+                          .data(entry_array)
+                            .text(function(d){return d.name})
+                            .attr("x",function(d){return d.position[0]+10})
+                            .attr("y",function(d){return d.position[1]+5})
+                            .attr("font-size", "16px")
+                            .style("fill",function(d){
+                            if (d.draw) {
+                              return "#000000"
+                            }
+                            else {
+                              return "#aaaaaa"
+                            }
+                          })
+                            .on("click",(d)=>this.itemClicked(d))
+  }
+  itemClicked(item) {
+      item.drawFlip()
+      this.redraw()
+      this.plot.redrawPoints(false,this)
   }
   move() {
     this.legend_group.raise()
@@ -63,6 +125,10 @@ class LegendEntry {
     this.name = name
     this.symbol = symbol
     this.color = color
+    this.draw = true
+  }
+  drawFlip() {
+    this.draw = !this.draw
   }
 }
 
@@ -89,6 +155,7 @@ class DynamicPlot {
 
     this.drawPoints();
     this.addLegend();
+    this.redrawPoints(this.legend);
 
   }
   beginPlot() {
@@ -165,7 +232,7 @@ class DynamicPlot {
     this.xAxis.transition().duration(1000).call(d3.axisBottom(this.x))
     this.yAxis.transition().duration(1000).call(d3.axisLeft(this.y))
 
-    this.redrawPoints(true)
+    this.redrawPoints(true,this.legend)
 
   }
   makeBrush() {
@@ -185,12 +252,12 @@ class DynamicPlot {
   doubleClickFunction() {
     console.log("Double click")
     this.x.domain([70,0])
-    this.y.domain([0,2000])
+    this.y.domain([0,8000])
 
     this.xAxis.transition().duration(1000).call(d3.axisBottom(this.x))
     this.yAxis.transition().duration(1000).call(d3.axisLeft(this.y))
 
-    this.redrawPoints(false)
+    this.redrawPoints(false,this.legend)
   }
 
   zoomFunction() {
@@ -198,14 +265,12 @@ class DynamicPlot {
         var newX = d3.event.transform.rescaleX(this.x)
         var newY = d3.event.transform.rescaleY(this.y)
 
-        //console.log(ageCO2Plot.xAxis)
         this.xAxis.call(d3.axisBottom(newX))
         this.yAxis.call(d3.axisLeft(newY))
 
         this.x = newX
         this.y = newY
 
-        console.log(newX.domain())
 
         this.redrawPoints(true)
   }
@@ -239,7 +304,7 @@ class DynamicPlot {
   makeYAxis() {
       // Add Y axis
       this.y = d3.scaleLinear()
-        .domain([0, 2000])
+        .domain([0, 8000])
         .range([this.dimensions.innerHeight, 0]);
 
       this.yAxis = this.innerSvg.append("g")
@@ -266,9 +331,9 @@ class DynamicPlot {
   }
   makeColorAxis() {
       this.colorAxis = d3.scaleOrdinal()
-                         .domain(["Stomata","Boron","Paleosol","Alkenone","C3","Liverwort"])
-                         .range(["#98b659","#dddddd","#85602e","#8ec7cc","#ff0000","#0000ff"])
-      console.log("Color axis created")
+                         .domain(["Algae ","Boron ","Stomata Frequency","Stomata Gas Exchange","Liverwort ","C3 ","Paleosol ","Nahcolite "])
+                         .range(["#890903","#CC5304","#D38F08","#3B9001","#028492","#394B9F","#7424A7","#3D0F5A"])
+      console.log("Color axes created")
     }
 
   // Drawing
@@ -285,7 +350,7 @@ class DynamicPlot {
                       .attr("cx", function (data) {return x(data.age/1000);} )
                       .attr("cy", function (d) { return y(d.co2); } )
                       .attr("r", 3)
-                      .style("fill", function (d) { return colorAxis(d.method) } )
+                      .style("fill", function (data) {return colorAxis(data.method.concat(" ".concat(data.submethod)))})
                       // .on("mouseover", function(d) {
                       //   div.transition()
                       //   .duration(100)
@@ -295,56 +360,60 @@ class DynamicPlot {
                       //   .style("top", (d3.event.pageY - 28) + "px")
                     // });
     }
-  redrawPoints(zoom_in,filter=null) {
-    console.log("Redraw")
-    console.log(filter)
+  redrawPoints(zoom_in,legend=null) {
     var x = this.x
     var y = this.y
     var colorAxis = this.colorAxis
+    var data
 
+    if (!legend) {
+      data = this.data
+    }
+    else {
+      data = this.data.filter(function(d){
+        return (legend.entries[d.method.concat(" ".concat(d.submethod))].draw)
+      })
+    }
 
     var smallX = x.domain()[1]
     var bigX = x.domain()[0]
     var smallY = y.domain()[0]
     var bigY = y.domain()[1]
 
-    var data
-    if (!filter) {
-      data = this.data
-    }
-    else {
-      data = this.data.filter(filter)
-      console.log(data)
-    }
 
     var points = this.innerSvg.selectAll("circle").data(data)
+
     if (zoom_in)
     {
+      points.exit().remove()
       points.enter().append("circle")
-                    .merge(points)
-                      .data(data)
-                      //.filter(filter)
-                      .transition()
-                        .duration(500)
-                        .style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}} )
-                      .transition().duration(500)
-                        .attr("cx", function (data) {return x(data.age/1000);})
-                        .attr("cy", function (data) {return y(data.co2);})
-                        .style("fill", function (data) {return colorAxis(data.method)})
+             .merge(points)
+                         .attr("cx", function (data) {return x(data.age/1000);})
+                         .attr("cy", function (data) {return y(data.co2);})
+                         .attr("r",3)
+                         .style("fill", function (data) {return colorAxis(data.method.concat(" ".concat(data.submethod)))})
+                       .style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}} )
     }
     else {
+      points.exit().remove()
+        //.transition().duration(5000)
+        //.style("opacity",0)
+        //.remove()
       points.enter().append("circle")
-                      .merge(points)
-                        //.filter(filter)
-                        .transition().duration(500)
-                          .attr("cx", function (data) {return x(data.age/1000);})
-                          .attr("cy", function (data) {return y(data.co2);})
-                          .style("fill", function (data) {return colorAxis(data.method)})
-                        .transition()
-                          .duration(500)
-                          .style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}} )
+      //.attr("cx", function (data) {return x(data.age/1000);})
+      //.attr("cy", function (data) {return y(data.co2);})
+      //.attr("r",3)
+      //.style("opacity",0)
+      //.call(enter => enter.transition(this.innerSvg.transition().duration(100)).style("opacity",1))
+            .merge(points)
+            .attr("cx", function (data) {return x(data.age/1000);})
+            .attr("cy", function (data) {return y(data.co2);})
+            .attr("r",3)
+            .style("fill", function (data) {return colorAxis(data.method.concat(" ".concat(data.submethod)))})
+            .style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}} )
+            //.transition().duration(500)
+            //.style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}} )
     }
-    points.exit().remove()
     this.legend.move()
   }
 
@@ -355,7 +424,7 @@ class DynamicPlot {
       this.legend.addEntry(new LegendEntry(item,"circle",this.colorAxis(item)))
     });
 
-    this.legend.draw([(0.9*this.dimensions.innerWidth),10])
+    this.legend.draw()
   }
 }
 
