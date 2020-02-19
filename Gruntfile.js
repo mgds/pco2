@@ -68,6 +68,7 @@ module.exports = function(grunt) {
                 //Copy jQuery to vendor directory
                 {expand: true, cwd:'bower_components/jquery/dist/',src: ['jquery.min.js'], dest: 'public/scripts/vendor/'},
                 {expand: true, cwd:'node_modules/lightbox2/dist/js/',src: ['lightbox.min.js'], dest: 'public/scripts/vendor/'},
+		{expand: true, cwd:'node_modules/d3/dist/',src: ['d3.min.js'], dest: 'public/scripts/vendor/'},
 //                {expand: true, cwd:'bower_components/moment/min/',src: ['moment.min.js'], dest: 'public/scripts/vendor/'},
                 //Copy bootstrap fonts to vendor directory
                 {expand: true, cwd:'bower_components/bootstrap/fonts/',src: ['**'], dest: 'public/fonts/'},
