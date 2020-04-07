@@ -45,8 +45,6 @@ pco2Controllers.controller('faqsView',['$scope','$timeout','$window','apiConfig'
 
 pco2Controllers.controller('faqView',['$scope','$timeout','$window','apiConfig','$routeParams','$location',function($scope,$timeout,$window,apiConfig,$routeParams,$location) {
     //$window.scrollTo({ top: 0, behavior: 'smooth' });
-    console.log("Route params FAQ ID")
-    console.log(parseInt($routeParams.faqid)-1)
     $scope.faqs = apiConfig.faqPages;
     $scope.faq = $scope.faqs[parseInt($routeParams.faqid)-1];
     if (!$scope.faqs[$routeParams.faqid]) {
