@@ -144,6 +144,10 @@ pco2App.config(
         templateUrl: 'inc/privacy_inc.html',
         controller: 'aboutView'
       }).
+      when('/experts', {
+        templateUrl: 'inc/expert_inc.html',
+        controller: 'aboutView'
+      }).
       when('/faqs',{
         templateUrl: 'inc/faqs/faq_inc.html',
         controller: 'faqsView'
