@@ -1,30 +1,112 @@
-class Dimensions {
+class Dimension_Collection {
   constructor(container) {
     this.container = container
     this.set()
   }
   set() {
-    this.margins = {top: 10, right: 200, bottom: 40, left: 60};
-    this.aspectRatio = 3/6;
-    this.outerWidth = parseInt(this.container.style("width"));
-    this.outerHeight = this.outerWidth*this.aspectRatio;
-    this.innerWidth = this.outerWidth-this.margins.left-this.margins.right;
-    this.innerHeight = this.outerHeight-this.margins.bottom-this.margins.top;
+    this.setGlobal()
+    this.setMainAnchors()
+    this.setControlAnchors()
+    this.setStaticsAnchors()
+    this.setDependents()
+  }
+  setGlobal() {
+    this.global = new Dimensions()
+    this.global.width = parseInt(this.container.style("width"));
+    this.global.aspectRatio = 2.5/6;
+    this.global.height = this.global.width*this.global.aspectRatio
+  }
+  setMainAnchors() {
+    this.main = new Dimensions()
 
-    //this.outerHeight = parseInt(this.container.style("height"));
-    //this.aspectRatio = parseInt(this.containerDiv.style("height"))/this.outerWidth
+    this.main.margins.bottom = 0
+    this.main.margins.left = 58
+  }
+  setStaticsAnchors() {
+    this.statics = new Dimensions()
+
+    this.statics.margins.top = 10
+    this.statics.margins.bottom = 0
+    this.statics.margins.left = 30
+    this.statics.margins.right = 10
+  }
+  setControlAnchors() {
+    this.controls = new Dimensions()
+
+    this.controls.margins.top = 0
+    this.controls.margins.bottom = 0
+    this.controls.margins.left = 0
+    this.controls.margins.right = 0
+  }
+  setDependents() {
+    this.controls.height = this.global.height
+    this.controls.width = 0.25*this.global.width
+
+    this.statics.width = this.global.width-(this.statics.margins.left+this.statics.margins.right)-this.controls.width
+    this.statics.height = this.global.height-(this.statics.margins.top+this.statics.margins.bottom)
+    this.statics.margins.left = this.controls.width+this.statics.margins.left
+
+    this.main.height = 0.5*this.statics.height
+    this.main.width = 0.635*this.statics.width
+    this.main.margins.top = (0.3*this.statics.height)+this.statics.margins.top
+    this.main.margins.left = this.controls.width+this.main.margins.left
+  }
+}
+class Dimensions {
+  constructor() {
+    this.width = null
+    this.height = null
+
+    this.aspectRatio = null
+
+    this.margins = {top:0,bottom:0,left:0,right:0}
+  }
+  matchLeftRight(input) {
+    this.margins.left = input.margins.left
+    this.margins.right = input.margins.right
+  }
+  matchTopBottom(input) {
+    this.margins.top = input.margins.top
+    this.margins.bottom = input.margins.bottom
+  }
+  setHeight(height) {
+     this.height = height
+  }
+  setWidth(width) {
+      this.width = width
+  }
+  setAspectRatio(aspectRatio) {
+      this.aspectRatio = aspectRatio
+  }
+  setMargins(marginObject) {
+      this.margins.top = marginObject.top
+      this.margins.bottom = marginObject.bottom
+      this.margins.left = marginObject.left
+      this.margins.right = marginObject.right
   }
 }
 
-class Legend {
+class Container {
+    constructor(parent,name) {
+        this.parent = parent
+        this.dimensions = new Dimensions()
+        this.content = this.parent.append("g")
+                                        .attr("transform","translate("+this.dimensions.margins.left+","+this.dimensions.margins.top+")")
+                                        .attr("width",this.dimensions.width)
+                                        .attr("height",this.dimensions.height)
+                                         .attr("id",name)
+    }
+}
+
+class Legend extends Container {
   constructor(container,plot,box_boolean=false) {
-    this.plot = plot
-    this.container = container
-    this.entries = {}
-    this.box_boolean = box_boolean
-    this.position = [(plot.dimensions.outerWidth-plot.dimensions.margins.right+20),plot.dimensions.margins.top]
-    this.spacing = 20
-    this.hide = false
+      super(container,"legend");
+      this.plot = plot
+      this.entries = {}
+      this.box_boolean = box_boolean
+      //this.position = [(plot.dimensions.controls.width/2)-(100/2),0.2*plot.dimensions.global.height]
+      this.spacing = 12
+      this.hide = false
     //this.relative_position = [90,10]
   }
   addEntry(entry) {
@@ -32,11 +114,11 @@ class Legend {
     this.entries[name] = (entry)
   }
   draw() {
-    var x_start = this.position[0]
-    var y_start = this.position[1]
+    var x_start = this.dimensions.margins.left
+    var y_start = this.dimensions.margins.top
     var i = 0
 
-    this.legend_group = this.container.append("g")
+    this.legend_group = this.content.append("g")
                                       .attr("transform","translate("+x_start+","+y_start+")")
 
     var entry_array = []
@@ -53,7 +135,7 @@ class Legend {
                           .append("circle")
                             .attr("cx",function(d){return d.position[0]})
                             .attr("cy",function(d){return d.position[1]})
-                            .attr("r",5)
+                            .attr("r",4)
                             .style("fill",function(d){return d.color})
                             .on("click",(d)=>this.itemClicked(d))
         this.legend_group.selectAll("text")
@@ -61,9 +143,9 @@ class Legend {
                           .enter()
                           .append("text")
                             .text(function(d){return d.name})
-                            .attr("x",function(d){return d.position[0]+10})
+                            .attr("x",function(d){return d.position[0]+8})
                             .attr("y",function(d){return d.position[1]+5})
-                            .attr("class","h4")
+                            .attr("class","h6")
                             //.attr("font-size", "16px")
                             .on("click",(d)=>this.itemClicked(d))
 
@@ -72,8 +154,8 @@ class Legend {
                             .style("fill","#396aa8")
   }
   redraw() {
-    var x_start = this.position[0]
-    var y_start = this.position[1]
+    var x_start = this.dimensions.margins.left
+    var y_start = this.dimensions.margins.top
     var i = 0
 
     //this.legend_group = this.innerSvg.append("g")
@@ -103,7 +185,7 @@ class Legend {
             legend_circles.enter().append("circle")
                             .attr("cx",function(d){return d.position[0]})
                             .attr("cy",function(d){return d.position[1]})
-                            .attr("r",5)
+                            .attr("r",4)
                             .style("fill",function(d){return d.color})
                             .style("opacity",function(d){
                               if (d.draw) {return 1}
@@ -112,7 +194,7 @@ class Legend {
                             .on("click",(d)=>this.itemClicked(d))
             legend_circles.attr("cx",function(d){return d.position[0]})
                             .attr("cy",function(d){return d.position[1]})
-                            .attr("r",5)
+                            .attr("r",4)
                             .style("fill",function(d){return d.color})
                             .style("opacity",function(d){
                               if (d.draw) {return 1}
@@ -127,10 +209,10 @@ class Legend {
                           legend_text.exit().remove()
                           legend_text.enter().append("text")
                             .text(function(d){return d.name})
-                            .attr("x",function(d){return d.position[0]+10})
+                            .attr("x",function(d){return d.position[0]+8})
                             .attr("y",function(d){return d.position[1]+5})
                             .attr("font-size", "16px")
-                            .attr("class","h4")
+                            .attr("class","h6")
                             .style("fill",function(d){
                             if (d.draw) {
                               return "#396aa8"
@@ -142,10 +224,10 @@ class Legend {
                             .on("click",(d)=>this.itemClicked(d))
 
                           legend_text.text(function(d){return d.name})
-                            .attr("x",function(d){return d.position[0]+10})
+                            .attr("x",function(d){return d.position[0]+8})
                             .attr("y",function(d){return d.position[1]+5})
                             .attr("font-size", "16px")
-                            .attr("class","h4")
+                            .attr("class","h6")
                             .style("fill",function(d){
                             if (d.draw) {
                               return "#396aa8"
@@ -160,7 +242,7 @@ class Legend {
   itemClicked(item) {
       item.drawFlip()
       this.redraw()
-      this.plot.redrawPoints(false,this)
+      this.dynamicPlot.redrawPoints()
   }
   move() {
     this.legend_group.raise()
@@ -190,7 +272,9 @@ class ButtonArray {
 
     var x_start = this.position[0]
     var y_start = this.position[1]
+
     this.button_group = this.container.append("g")
+                                          .attr("id","control_buttons")
                                           .attr("transform","translate("+x_start+","+y_start+")")
   }
   addEntry(entry) {
@@ -206,8 +290,6 @@ class ButtonArray {
     for (var name in this.entries) {
         var item = this.entries[name]
         entry_array.push(item)
-        //item.size = this.size
-        console.log(this.direction)
         if (this.direction=="horizontal") {
           item.position = [0+(i*(item.size[0]+this.spacing)),y_start]
         }
@@ -273,7 +355,7 @@ class ButtonArray {
                             // .on("click",(d)=>this.itemClicked(d))
                             //   .transition().duration(1000)
                             //   .style("opacity",function(d){return d.opacity})
-
+        this.move();
   }
   redraw() {
     var x_start = this.position[0]
@@ -333,69 +415,225 @@ class ButtonEntry {
   }
 }
 
-class DynamicPlot {
-  constructor() {
-    this.containerDiv = d3.select("#age_co2_plot");
-    this.dimensions = new Dimensions(this.containerDiv);
-    this.dataFile = "data/data.json";
+class CombinedStaticDynamicPlot extends Container {
+    constructor(container,aspectRatio) {
+        super(container);
 
-    this.beginPlot()
+        this.aspectRatio = aspectRatio
+        this.makeColorAxis();
+
+        //this.containerDiv = d3.select("#age_co2_plot");
+        this.beginPlot();
+
+        this.staticPlot = new StaticPlot(this.outerSvg,1000/631,this.dimensions);
+        this.dynamicPlot = new DynamicPlot(this.outerSvg,this.staticPlot.dimensions,this.colorAxis);
+        this.dynamicPlot.content.on("mouseleave",()=>this.hiderMouseOut())
+
+        this.controlPanel = new Container(this.outerSvg,"control_panel");
+        this.controlPanel.dimensions.width = this.staticPlot.dimensions.margins.left
+        this.controlPanel.dimensions.height = this.dimensions.height
+        this.addControlsContent();
+
+        this.addLegend();
+
+        this.linkContainers();
+    }
+
+    beginPlot() {
+        this.setDimensions()
+        this.makeSvg()
+        this.makeBackground()
+
+    }
+    setDimensions(aspectRatio) {
+        this.dimensions = new Dimensions();
+        this.dimensions.aspectRatio = this.aspectRatio
+        this.dimensions.width = 500
+        this.dimensions.height =this.dimensions.width/this.dimensions.aspectRatio
+    }
+    makeSvg() {
+       var elementExists = document.getElementById("plot_svg");
+       if (elementExists==null) {
+           }
+       else {
+         d3.select("#plot_svg").remove();
+       }
+
+       this.outerSvg = this.content.append("svg")
+                                              .attr("id","plot_svg")
+                                              .attr("width",this.dimensions.width)
+                                              .attr("height",this.dimensions.height)
+                                              .on("mouseenter",()=>this.mouseEnterEvent())
+                                              .on("mouseleave",()=>this.mouseLeaveEvent())
+
+
+        }
+    makeBackground() {
+        this.background = this.outerSvg.append("rect")
+                                            .attr("width",this.dimensions.width)
+                                            .attr("height",this.dimensions.height)
+                                            .attr("fill","white")
+          }
+    addControlsContent() {
+        var button_width = 100
+        var button_height = 30
+
+        this.controlPanelButtons = new ButtonArray(this.controlPanel.content,[(this.controlPanel.dimensions.width/2)-(button_width/2),5],this)
+        this.controlPanelButtons.addEntry(new ButtonEntry("Download",this.alignAxes,[button_width,button_height]))
+        this.controlPanelButtons.addEntry(new ButtonEntry("Spare1",this.alignAxes,[button_width,button_height]))
+
+        this.controlPanelButtons.constant = true
+        this.controlPanelButtons.direction = "vertical"
+
+        this.controlPanelButtons.draw()
+      }
+
+    // Legend
+    makeColorAxis() {
+        this.colorAxis = d3.scaleOrdinal()
+                           .domain(["Algae ","Boron ","Stomata Frequency","Stomata Gas Exchange","Liverwort ","C3 ","Paleosol ","Nahcolite "])
+                           .range(["#890903","#CC5304","#D38F08","#3B9001","#028492","#394B9F","#7424A7","#3D0F5A"])
+        console.log("Color axes created")
+      }
+    addLegend() {
+    this.legend = new Legend(this.controlPanel.content,this)
+      this.colorAxis.domain().forEach((item, i) => {
+        this.legend.addEntry(new LegendEntry(item,"circle",this.colorAxis(item)))
+      });
+
+      //console.log("Control panel buttons")
+      //console.log(this.controlPanelButtons.entries["Spare1"].position[1])
+
+      this.legend.dimensions.margins.top = this.controlPanelButtons.entries["Spare1"].position[1]+10;
+      this.legend.dimensions.margins.left = this.controlPanelButtons.position[0];
+      this.legend.draw();
+    }
+
+    // Mouse events
+    mouseEnterEvent() {
+      console.log("Mouse over plot")
+      this.dynamicPlot.buttonArray.draw()
+    }
+    mouseLeaveEvent() {
+      console.log("Mouse out plot")
+      this.dynamicPlot.buttonArray.button_group.selectAll("rect")
+                                    .transition().duration(1000)
+                                    .style("opacity",0)
+                                    .remove()
+      this.dynamicPlot.buttonArray.button_group.selectAll("text")
+                                    .transition().duration(500)
+                                    .style("opacity",0)
+                                    .remove()
+    }
+
+    hiderMouseOut() {
+
+        //this.staticPlot.dimensions.margins.left = this.staticPlot.dimensions.margins.left+100
+        //this.staticPlot.dimensions.margins.top = this.staticPlot.dimensions.margins.top-100
+        if (this.dynamicPlot.changed) {
+            this.staticPlot.content.transition().duration(1000).attr("transform","translate("+(this.staticPlot.dimensions.margins.left+150)+","+(this.staticPlot.dimensions.margins.top-100)+")");
+        }
+    }
+
+    linkContainers() {
+        this.dynamicPlot.legend = this.legend;
+        this.legend.dynamicPlot = this.dynamicPlot;
+
+        console.log("Containers linked");
+    }
+}
+class StaticPlot extends Container {
+    constructor(container,aspectRatio,containerDimensions) {
+        super(container);
+        this.setDimensions(aspectRatio,containerDimensions.height,containerDimensions.width);
+        this.makeContent();
+    }
+    setDimensions(aspectRatio,height,containerWidth) {
+        this.dimensions = new Dimensions()
+        this.dimensions.aspectRatio = aspectRatio;
+        this.dimensions.height = height;
+        this.dimensions.width = this.dimensions.height*this.dimensions.aspectRatio;
+        this.dimensions.margins.left = containerWidth-this.dimensions.width
+
+        this.content.attr("transform","translate("+this.dimensions.margins.left+","+this.dimensions.margins.top+")")
+                    .attr("width",this.dimensions.width)
+                    .attr("height",this.dimensions.height)
+    }
+    makeContent() {
+        //this.content = this.container.append("g")
+        //                                .attr("transform","translate("+this.dimensions.margins.left+","+this.dimensions.margins.top+")")
+        //                                .attr("width",this.dimensions.width)
+        //                                .attr("height",this.dimensions.height)
+        this.image = this.content.append("svg:image")
+                    .attr("xlink:href", "images/subplots.svg")
+                    .attr("x",0)
+                    .attr("width",this.dimensions.width)
+        }
+}
+class DynamicPlot extends Container {
+  constructor(container,staticDimensions,colorAxis) {
+      super(container);
+
+      this.setDimensions(staticDimensions);
+
+      this.dataFile = "data/data.json";
+      this.changed = false;
+
+      this.colorAxis = colorAxis;
+
+      this.beginPlot()
   }
 
   // Starting plot
   beginPlot() {
-    this.makeSvg()
+    this.makeRight()
+
     this.makeBrush()
     this.makeDoubleClick()
 
     this.addData()
     this.addOverlayButtons()
-    this.addRightButtons()
   }
-  makeSvg() {
-     var elementExists = document.getElementById("plot_svg");
-     if (elementExists==null) {
-         }
-     else {
-       d3.select("#plot_svg").remove();
-     }
+  setDimensions(staticDimensions) {
+      this.dimensions = new Dimensions();
 
-     this.outerSvg = this.containerDiv.append("svg")
-                                            .attr("id","plot_svg")
-                                            .attr("width",this.dimensions.outerWidth)
-                                            .attr("height",this.dimensions.outerHeight)
-                                            .on("mouseenter",()=>this.mouseEnterEvent())
-                                            .on("mouseleave",()=>this.mouseLeaveEvent())
+      var svgDefaultWidth = 272.214;
+      var svgDefaultHeight = 172.656;
 
-     this.makeBackground()
+      var widthRatio = 173.440/svgDefaultWidth;
+      var heightRatio = 99.013/svgDefaultHeight;
 
-     this.innerSvg = this.outerSvg.append("g")
-                                        .attr("transform","translate("+this.dimensions.margins.left+", "+this.dimensions.margins.top+")")
-                                        .attr("width",this.dimensions.innerWidth)
-                                        .attr("height",this.dimensions.innerHeight)
-                                        .call(d3.zoom()
-                                          //.scaleExtent([1,50])
-                                          .translateExtent([[0,0],[this.dimensions.outerWidth,this.dimensions.outerHeight]]))
-                                          //.on("zoom",()=>this.zoomFunction())
-                                          .on("dblclick.zoom",null)
-      }
-  makeBackground() {
-  this.background = this.outerSvg.append("rect")
-                                      .attr("width",this.dimensions.outerWidth)
-                                      .attr("height",this.dimensions.outerHeight)
-                                      .attr("fill","white")
-    }
+      var leftMarginRatio = 21.367/svgDefaultWidth
+      var leftMargin = staticDimensions.margins.left+(leftMarginRatio*staticDimensions.width)
+
+      var topMarginRatio = 57.720/svgDefaultHeight
+      var topMargin = staticDimensions.margins.top+(topMarginRatio*staticDimensions.height)
+
+      this.dimensions.setWidth(staticDimensions.width*widthRatio);
+      this.dimensions.setHeight(staticDimensions.height*heightRatio);
+      this.dimensions.setMargins({top:topMargin,bottom:0,right:0,left:leftMargin})
+
+      this.content.attr("transform","translate("+this.dimensions.margins.left+","+this.dimensions.margins.top+")")
+                  .attr("width",this.dimensions.width)
+                  .attr("height",this.dimensions.height)
+  }
+  makeRight() {
+      this.svg = this.content.append("g")
+                                    .attr("transform","translate("+this.dimensions.margins.left+", "+this.dimensions.margins.top+")")
+                                    .attr("width",this.dimensions.width)
+                                    .attr("height",this.dimensions.height)
+                                    .call(d3.zoom())
+                                      .on("dblclick.zoom",null)
+  }
+
   makePlot(data) {
       this.makeXAxis();
       this.makeYAxis();
-      this.makeColorAxis();
+
+      this.addLogo();
 
       this.drawPoints();
-      this.addLegend();
-
-      this.rightButtons.draw()
-
-      this.redrawPoints(this.legend);
+      this.redrawPoints();
     }
 
   // Data
@@ -407,22 +645,16 @@ class DynamicPlot {
     this.data = data
   }
 
-  // Mouse events
-  mouseEnterEvent() {
-    console.log("Mouse over plot")
-    this.buttonArray.draw()
+  addLogo() {
+    //this.imageContainer = this.content.append("g")
+    this.content.append("svg:image")
+                        .attr("xlink:href", "images/logo.svg")
+                        .attr("x",0.7*this.dimensions.width)
+                        .attr("y",10)
+                        .attr("width",0.25*this.dimensions.width)
+                        .style("opacity",0.5)
   }
-  mouseLeaveEvent() {
-    console.log("Mouse out plot")
-    this.buttonArray.button_group.selectAll("rect")
-                                  .transition().duration(1000)
-                                  .style("opacity",0)
-                                  .remove()
-    this.buttonArray.button_group.selectAll("text")
-                                  .transition().duration(500)
-                                  .style("opacity",0)
-                                  .remove()
-  }
+
   boxMouseOver() {
     console.log("Mouse over button")
     this.button.attr("opacity",1)
@@ -456,23 +688,24 @@ class DynamicPlot {
     this.x.domain([xExtent1,xExtent2])
     this.y.domain([yExtent1,yExtent2])
 
-    this.xAxis.transition().duration(1000).call(d3.axisBottom(this.x))
-    this.yAxis.transition().duration(1000).call(d3.axisLeft(this.y))
+    this.xAxis.transition().duration(1000).call(this.replacementXAxis())
+    this.yAxis.transition().duration(1000).call(this.replacementYAxis())
 
-    this.redrawPoints(true,this.legend)
+    this.changed = true;
+    this.redrawPoints();
 
   }
   makeBrush() {
     this.brush = d3.brush()
-             .extent([[0,0],[this.dimensions.innerWidth,this.dimensions.innerHeight]])
+             .extent([[0,0],[this.dimensions.width,this.dimensions.height]])
              .on("end",()=>this.brushFunction())
-    this.brushContainer = this.innerSvg.append("g")
+    this.brushContainer = this.content.append("g")
                                          .attr("class", "brush")
                                          .call(this.brush)
                                          .on("dblclick",()=>this.doubleClickFunction())
      }
   makeDoubleClick() {
-    this.clickContainer = this.innerSvg.append("g")
+    this.clickContainer = this.content.append("g")
                                        .attr("class","click")
                                        .on("dblclick",()=>this.doubleClickFunction())
   }
@@ -481,10 +714,12 @@ class DynamicPlot {
     this.x.domain([70,0])
     this.y.domain([0,8000])
 
-    this.xAxis.transition().duration(1000).call(d3.axisBottom(this.x))
-    this.yAxis.transition().duration(1000).call(d3.axisLeft(this.y))
+    this.xAxis.transition().duration(1000).call(this.replacementXAxis())
+    this.yAxis.transition().duration(1000).call(this.replacementYAxis())
 
-    this.redrawPoints(false,this.legend)
+    this.changed = false;
+
+    this.redrawPoints();
   }
 
   // Zooming
@@ -500,7 +735,7 @@ class DynamicPlot {
         this.y = newY
 
 
-        this.redrawPoints(true)
+        this.redrawPoints()
   }
 
   // Plotting
@@ -509,20 +744,27 @@ class DynamicPlot {
     // Add X axis
     this.x = d3.scaleLinear()
           .domain([70,0])
-          .range([0,this.dimensions.innerWidth]);
+          .range([0,this.dimensions.width]);
 
-    this.xAxis = this.innerSvg.append("g")
-                        .attr("transform", "translate(" + 0 + "," + (this.dimensions.innerHeight) + ")")
+    this.xAxis = this.content.append("g")
+                        .attr("transform", "translate(" + 0 + "," + (this.dimensions.height) + ")")
                         .classed("axis_text","true")
-                        .call(d3.axisBottom(this.x));
+                        .style("font-size","5pt")
+                        .style("font-weight","bold")
+                        .call(d3.axisTop(this.x).tickPadding(-15));
+
+    this.xAxis2 = this.content.append("g")
+                        .attr("transform", "translate("+(0)+","+(0)+")")
+                        .call(d3.axisBottom(this.x).tickFormat(""));
 
     console.log("X axis drawn");
 
-    this.innerSvg.append("text")
-                .attr("transform","translate(" + (this.dimensions.innerWidth/2) + "," + (this.dimensions.innerHeight + this.dimensions.margins.top + 20) + ")")
+    this.content.append("text")
+                .attr("transform","translate(" + (this.dimensions.width/2) + "," + (this.dimensions.height+20) + ")")
                 .style("text-anchor","middle")
-                .text("Age")
+                .text("Age (millions of years ago)")
                 .classed("axis_text","true")
+                .style("font-size","6pt")
                 .style("font-family","sans-serif")
                 .style("font-weight","bold")
                 .style("fill","#0c448b")
@@ -532,45 +774,56 @@ class DynamicPlot {
   makeYAxis() {
       // Add Y axis
       this.y = d3.scaleLinear()
-        .domain([0, 8000])
-        .range([this.dimensions.innerHeight, 0]);
+        .domain([0, 5500])
+        .range([this.dimensions.height, 0]);
 
-      this.yAxis = this.innerSvg.append("g")
+      this.yAxis = this.content.append("g")
         .attr("transform", "translate(" + 0 + "," + 0 + ")")
         .classed("axis_text","true")
-        .call(d3.axisLeft(this.y));
+        .style("font-size","5pt")
+        .style("font-weight","bold")
+        .call(d3.axisRight(this.y).tickPadding(-26).tickFormat(d3.format("d")));
+
+      this.yAxis2 = this.content.append("g")
+        .attr("transform","translate("+this.dimensions.width+","+0+")")
+        .call(d3.axisLeft(this.y).tickFormat(""));
 
       console.log("Y axis drawn");
 
-      this.innerSvg.append("text")
-         .style("transform","translate(" + -40 + "px," + (this.dimensions.innerHeight/2 + 50) + "px) rotate(-90deg)")
+      var axisText = this.content.append("text")
+         .style("transform","translate(" + -25 + "px," + ((this.dimensions.height/2)+40) + "px) rotate(-90deg)")
          .text("Atmospheric CO")
          .classed("axis_text","true")
+         .style("font-size","6pt")
          .style("font-family","sans-serif")
          .style("font-weight","bold")
          .style("fill","#0c448b")
-         .append('tspan')
+      axisText.append('tspan')
           .text('2')
-          .style('font-size', '1rem')
+          .style('font-size', '0.5rem')
           .attr('dx', '.1em')
-          .attr('dy', '.2em');
+          .attr('dy', '.2em')
+      axisText.append("tspan")
+          .text(" (ppm)")
+          .style("font-size","6pt")
+          .attr('dx', '0em')
+          .attr('dy', '0em')
 
         console.log("Y Label added");
   }
-  makeColorAxis() {
-      this.colorAxis = d3.scaleOrdinal()
-                         .domain(["Algae ","Boron ","Stomata Frequency","Stomata Gas Exchange","Liverwort ","C3 ","Paleosol ","Nahcolite "])
-                         .range(["#890903","#CC5304","#D38F08","#3B9001","#028492","#394B9F","#7424A7","#3D0F5A"])
-      console.log("Color axes created")
-    }
+  replacementXAxis() {
+      return d3.axisTop(this.x).tickPadding(-15)
+  }
+  replacementYAxis() {
+      return d3.axisRight(this.y).tickPadding(-26).tickFormat(d3.format("d"));
+  }
 
   // Drawing
   drawPoints() {
     var x = this.x
     var y = this.y
     var colorAxis = this.colorAxis
-    this.innerSvg.append('g')
-                     .attr("transform", "translate(" + 0 + "," + 0 + ")")
+    this.content.append('g')
                      .selectAll("dot")
                      .data(this.data)
                      .enter()
@@ -588,20 +841,16 @@ class DynamicPlot {
                       //   .style("top", (d3.event.pageY - 28) + "px")
                     // });
     }
-  redrawPoints(zoom_in,legend=null) {
+  redrawPoints(zoom_in=true) {
     var x = this.x
     var y = this.y
     var colorAxis = this.colorAxis
     var data
 
-    if (!legend) {
-      data = this.data
-    }
-    else {
-      data = this.data.filter(function(d){
+    legend = this.legend;
+    data = this.data.filter(function(d){
         return (legend.entries[d.method.concat(" ".concat(d.submethod))].draw)
-      })
-    }
+    });
 
     var smallX = x.domain()[1]
     var bigX = x.domain()[0]
@@ -609,13 +858,13 @@ class DynamicPlot {
     var bigY = y.domain()[1]
 
 
-    var points = this.innerSvg.selectAll("circle").data(data)
+    var points = this.content.selectAll("circle").data(data)
 
     if (zoom_in)
     {
       points.exit().remove()
       points.enter().append("circle")
-             .call(enter => enter.transition(this.innerSvg.transition().duration(1000)).style("opacity",1))
+             .call(enter => enter.transition(this.content.transition().duration(1000)).style("opacity",1))
              .merge(points)
                          .attr("cx", function (data) {return x(data.age/1000);})
                          .attr("cy", function (data) {return y(data.co2);})
@@ -624,50 +873,27 @@ class DynamicPlot {
                        .style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}} )
     }
     else {
-      points.exit().remove()
-      points.enter().append("circle")
-      .call(enter => enter.transition(this.innerSvg.transition().duration(1000)).style("opacity",1))
-            .merge(points)
-            .attr("cx", function (data) {return x(data.age/1000);})
-            .attr("cy", function (data) {return y(data.co2);})
-            .attr("r",3)
-            .style("fill", function (data) {return colorAxis(data.method.concat(" ".concat(data.submethod)))})
-            .style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}} )
+      // points.exit().remove()
+      // points.enter().append("circle")
+      // .call(enter => enter.transition(this.content.transition().duration(1000)).style("opacity",1))
+      //       .merge(points)
+      //       .attr("cx", function (data) {return x(data.age/1000);})
+      //       .attr("cy", function (data) {return y(data.co2);})
+      //       .attr("r",3)
+      //       .style("fill", function (data) {return colorAxis(data.method.concat(" ".concat(data.submethod)))})
+      //       .style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}} )
             //.transition().duration(500)
             //.style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}} )
     }
-    this.legend.move()
+    //this.legend.move() NEEDS LEGEND
     this.buttonArray.move()
-  }
-
-  // Legend
-  addLegend() {
-    this.legend = new Legend(this.outerSvg,this)
-    this.colorAxis.domain().forEach((item, i) => {
-      this.legend.addEntry(new LegendEntry(item,"circle",this.colorAxis(item)))
-    });
-
-    this.legend.draw()
   }
 
   // Buttons
   addOverlayButtons() {
-    this.buttonArray = new ButtonArray(this.innerSvg,[10,0],this)
-    this.buttonArray.addEntry(new ButtonEntry("Align",this.alignAxes))
-    this.buttonArray.addEntry(new ButtonEntry("Hide",this.hideUnusedLegend))
-    this.buttonArray.addEntry(new ButtonEntry("Spare1",this.hideUnusedLegend))
-    this.buttonArray.addEntry(new ButtonEntry("Spare2",this.hideUnusedLegend))
-    this.buttonArray.addEntry(new ButtonEntry("Spare3",this.hideUnusedLegend))
-  }
-  addRightButtons() {
-    this.rightButtons = new ButtonArray(this.outerSvg,[(this.dimensions.outerWidth-this.dimensions.margins.right+20),90],this)
-    this.rightButtons.addEntry(new ButtonEntry("Download",this.alignAxes,[150,30]))
-    this.rightButtons.addEntry(new ButtonEntry("Spare1",this.alignAxes,[150,30]))
-    this.rightButtons.addEntry(new ButtonEntry("Spare2",this.alignAxes,[150,30]))
-    this.rightButtons.addEntry(new ButtonEntry("Spare3",this.alignAxes,[150,30]))
-
-    this.rightButtons.constant = true
-    this.rightButtons.direction = "vertical"
+    this.buttonArray = new ButtonArray(this.content,[5,2],this)
+    this.buttonArray.addEntry(new ButtonEntry("Align",this.alignAxes,[60,30]))
+    this.buttonArray.addEntry(new ButtonEntry("Hide",this.hideUnusedLegend,[60,30]))
   }
 
   // Button functions
@@ -688,7 +914,7 @@ class DynamicPlot {
      })
 
      container.x.domain(x_rounded)
-     container.xAxis.transition().duration(1000).call(d3.axisBottom(container.x))
+     container.xAxis.transition().duration(1000).call(container.replacementXAxis())
 
      var y_Limits = container.y.domain()
      var y_Limits_clean = []
@@ -704,10 +930,10 @@ class DynamicPlot {
       })
 
       container.y.domain(y_rounded)
-      container.yAxis.transition().duration(1000).call(d3.axisLeft(container.y))
+      container.yAxis.transition().duration(1000).call(container.replacementYAxis())
 
 
-     container.redrawPoints(true,container.legend)
+     container.redrawPoints();
 
 
     //var log_x_Limits = [Math.floor(Math.log10(x_Limits[0]*1e6)),Math.floor(Math.log10(x_Limits[1]*1e6))]
@@ -722,4 +948,4 @@ class DynamicPlot {
   }
 }
 
-ageCO2Plot = new DynamicPlot();
+ageCO2Plot = new CombinedStaticDynamicPlot(d3.select("#age_co2_plot"),1200/550);
