@@ -588,3 +588,88 @@ a.proxylistitem {
     }
 }
 @import "plotStyle.less";
+address hr {
+    border-bottom:1px solid #ccc;
+    margin:10px 0px;
+}
+
+div.experticons {
+    margin-top:10px;
+    div {
+        float:left;
+        height:36px;
+        width:36px;
+        position:relative;
+        margin-right:3px;
+        padding:0px;
+        img {
+            height:30px;
+            position:absolute;
+            top:3px;
+            left:3px;
+        }
+    }
+}
+
+.phytoplankton_bg {
+    background-color:#890903;
+}
+
+.liverworts_bg {
+    background-color:#028492;
+}
+
+.boron_bg {
+    background-color:#CC5304;
+}
+
+.leafcarbon_bg {
+    background-color:#394B9F;
+}
+
+.stomatal_bg {
+    background-color:#D38F08;
+}
+
+.paleosols_bg {
+    background-color:#7424A7;
+}
+
+.leafgas_bg {
+    background-color:#3B9001;
+}
+
+.nahcolite_bg {
+    background-color:#3D0F5A;
+}
+
+a.proxylistitem {
+    & > div {
+        margin-bottom:40px;
+        & > .itemtitle {
+            height:60px;
+            line-height:60px;
+            font-size:30px;
+            color:white;
+            padding-left:10px;
+            font-family:'Oswald';
+            & > div {
+                float:left;
+                height:40px;
+                width:60px;
+                position:relative;
+                padding:10px;
+                img {
+                    height:40px;
+                    position:absolute;
+                    top:10px;
+                }
+            }
+        }
+        & > .itemthumbnail {
+            img {
+                width:100%;
+            }
+        }
+    }
+}
