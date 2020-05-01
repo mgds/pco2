@@ -419,7 +419,7 @@ class CombinedStaticDynamicPlot extends Container {
     constructor(container,aspectRatio) {
         super(container);
 
-        this.aspectRatio = aspectRatio
+        this.aspectRatio = aspectRatio;
         this.makeColorAxis();
 
         //this.containerDiv = d3.select("#age_co2_plot");
@@ -443,7 +443,6 @@ class CombinedStaticDynamicPlot extends Container {
         this.setDimensions()
         this.makeSvg()
         this.makeBackground()
-
     }
     setDimensions(aspectRatio) {
         this.dimensions = new Dimensions();
@@ -479,8 +478,8 @@ class CombinedStaticDynamicPlot extends Container {
         var button_height = 30
 
         this.controlPanelButtons = new ButtonArray(this.controlPanel.content,[(this.controlPanel.dimensions.width/2)-(button_width/2),5],this)
-        this.controlPanelButtons.addEntry(new ButtonEntry("Download",this.alignAxes,[button_width,button_height]))
-        this.controlPanelButtons.addEntry(new ButtonEntry("Spare1",this.alignAxes,[button_width,button_height]))
+        this.controlPanelButtons.addEntry(new ButtonEntry("Data",this.alignAxes,[button_width,button_height]))
+        this.controlPanelButtons.addEntry(new ButtonEntry("Image",this.alignAxes,[button_width,button_height]))
 
         this.controlPanelButtons.constant = true
         this.controlPanelButtons.direction = "vertical"
@@ -504,7 +503,7 @@ class CombinedStaticDynamicPlot extends Container {
       //console.log("Control panel buttons")
       //console.log(this.controlPanelButtons.entries["Spare1"].position[1])
 
-      this.legend.dimensions.margins.top = this.controlPanelButtons.entries["Spare1"].position[1]+10;
+      this.legend.dimensions.margins.top = this.controlPanelButtons.entries["Image"].position[1]+10;
       this.legend.dimensions.margins.left = this.controlPanelButtons.position[0];
       this.legend.draw();
     }
@@ -527,17 +526,34 @@ class CombinedStaticDynamicPlot extends Container {
     }
 
     hiderMouseOut() {
+        console.log("Hider")
+        console.log(this.dynamicPlot.changeSize)
+        if (this.dynamicPlot.changeSize)
+        {
+            console.log("Changing size");
+            this.dynamicPlot.changeSize = false;
+            if (!this.dynamicPlot.isLarge) {
+                this.dynamicPlot.isLarge = true;
 
-        //this.staticPlot.dimensions.margins.left = this.staticPlot.dimensions.margins.left+100
-        //this.staticPlot.dimensions.margins.top = this.staticPlot.dimensions.margins.top-100
-        if (this.dynamicPlot.changed) {
-            this.staticPlot.content.transition().duration(1000).attr("transform","translate("+(this.staticPlot.dimensions.margins.left+150)+","+(this.staticPlot.dimensions.margins.top-100)+")");
+                this.staticPlot.content.transition().duration(1000).attr("transform","translate("+(this.staticPlot.dimensions.margins.left+this.dynamicPlot.rightSide+100)+","+(this.staticPlot.dimensions.margins.top-this.dynamicPlot.topSide-50)+")");
+
+                this.dynamicPlot.dimensions.margins.top = 10;
+                this.dynamicPlot.resizeFunction(this.dynamicPlot.rightSide,this.dynamicPlot.topSide)
+            }
+            else if (this.dynamicPlot.isLarge) {
+                this.dynamicPlot.isLarge = false;
+
+                this.dynamicPlot.dimensions.margins.top = this.dynamicPlot.topMargin;
+                this.dynamicPlot.resizeFunction(-this.dynamicPlot.rightSide,-this.dynamicPlot.topSide)
+                this.staticPlot.content.transition().duration(1000).attr("transform","translate("+(this.staticPlot.dimensions.margins.left)+","+(this.staticPlot.dimensions.margins.top)+")");
+            }
         }
     }
 
     linkContainers() {
         this.dynamicPlot.legend = this.legend;
         this.legend.dynamicPlot = this.dynamicPlot;
+        this.dynamicPlot.parent = this;
 
         console.log("Containers linked");
     }
@@ -577,7 +593,8 @@ class DynamicPlot extends Container {
       this.setDimensions(staticDimensions);
 
       this.dataFile = "data/data.json";
-      this.changed = false;
+      this.changeSize = false;
+      this.isLarge = false;
 
       this.colorAxis = colorAxis;
 
@@ -609,6 +626,10 @@ class DynamicPlot extends Container {
       var topMarginRatio = 57.720/svgDefaultHeight
       var topMargin = staticDimensions.margins.top+(topMarginRatio*staticDimensions.height)
 
+      this.rightSide = (64.790/svgDefaultWidth)*staticDimensions.width;
+      this.topSide = (49.702/svgDefaultHeight)*staticDimensions.height;
+      this.topMargin = topMargin;
+
       this.dimensions.setWidth(staticDimensions.width*widthRatio);
       this.dimensions.setHeight(staticDimensions.height*heightRatio);
       this.dimensions.setMargins({top:topMargin,bottom:0,right:0,left:leftMargin})
@@ -627,10 +648,14 @@ class DynamicPlot extends Container {
   }
 
   makePlot(data) {
-      this.makeXAxis();
-      this.makeYAxis();
+      this.createXAxis();
+      this.placeXAxis();
 
-      this.addLogo();
+      this.createYAxis();
+      this.placeYAxis();
+
+      this.createLogo();
+      this.placeLogo();
 
       this.drawPoints();
       this.redrawPoints();
@@ -645,14 +670,16 @@ class DynamicPlot extends Container {
     this.data = data
   }
 
-  addLogo() {
+  createLogo() {
     //this.imageContainer = this.content.append("g")
-    this.content.append("svg:image")
-                        .attr("xlink:href", "images/logo.svg")
-                        .attr("x",0.7*this.dimensions.width)
-                        .attr("y",10)
-                        .attr("width",0.25*this.dimensions.width)
-                        .style("opacity",0.5)
+    this.logo = this.content.append("svg:image")
+                            .attr("xlink:href", "images/logo.svg")
+                            .style("opacity",0.5)
+  }
+  placeLogo() {
+      this.logo.attr("x",0.7*this.dimensions.width)
+                  .attr("y",10)
+                  .attr("width",0.25*this.dimensions.width)
   }
 
   boxMouseOver() {
@@ -691,9 +718,9 @@ class DynamicPlot extends Container {
     this.xAxis.transition().duration(1000).call(this.replacementXAxis())
     this.yAxis.transition().duration(1000).call(this.replacementYAxis())
 
-    this.changed = true;
+    this.changeSize = true;
+    this.parent.hiderMouseOut();
     this.redrawPoints();
-
   }
   makeBrush() {
     this.brush = d3.brush()
@@ -717,9 +744,32 @@ class DynamicPlot extends Container {
     this.xAxis.transition().duration(1000).call(this.replacementXAxis())
     this.yAxis.transition().duration(1000).call(this.replacementYAxis())
 
-    this.changed = false;
-
+    this.changeSize = true;
+    this.parent.hiderMouseOut();
     this.redrawPoints();
+  }
+
+  resizeFunction(extra_width,extra_height) {
+      this.content.attr("transform","translate("+this.dimensions.margins.left+","+this.dimensions.margins.top+")");
+
+      var width = this.dimensions.width+extra_width;
+      var height = this.dimensions.height+extra_height;
+
+      this.x.range([0,width]);
+      this.y.range([height,0]);
+
+      this.dimensions.width = width;
+      this.dimensions.height = height;
+
+      this.brush.extent([[0,0],[width,height]])
+      this.brushContainer.call(this.brush);
+
+      this.placeXAxis();
+      this.placeYAxis();
+      this.placeLogo();
+      this.redrawPoints();
+
+      this.content.transition().duration(1000).attr("transform","translate("+this.dimensions.margins.left+","+this.dimensions.margins.top+")");
   }
 
   // Zooming
@@ -740,76 +790,76 @@ class DynamicPlot extends Container {
 
   // Plotting
   // Axes
-  makeXAxis() {
+  createXAxis() {
+      this.x = d3.scaleLinear()
+            .domain([70,0])
+            .range([0,this.dimensions.width]);
+
+      this.xAxis = this.content.append("g")
+                              .classed("axis_text","true")
+                              .style("font-size","5pt")
+                              .style("font-weight","bold")
+      this.xAxis2 = this.content.append("g")
+
+      this.xLabel = this.content.append("text")
+                                  .style("text-anchor","middle")
+                                  .text("Age (millions of years ago)")
+                                  .classed("axis_text","true")
+                                  .style("font-size","6pt")
+                                  .style("font-family","sans-serif")
+                                  .style("font-weight","bold")
+                                  .style("fill","#0c448b")
+  }
+  placeXAxis() {
     // Add X axis
-    this.x = d3.scaleLinear()
-          .domain([70,0])
-          .range([0,this.dimensions.width]);
-
-    this.xAxis = this.content.append("g")
-                        .attr("transform", "translate(" + 0 + "," + (this.dimensions.height) + ")")
-                        .classed("axis_text","true")
-                        .style("font-size","5pt")
-                        .style("font-weight","bold")
+    this.xAxis.transition().duration(1000).attr("transform", "translate(" + 0 + "," + (this.dimensions.height) + ")")
                         .call(d3.axisTop(this.x).tickPadding(-15));
-
-    this.xAxis2 = this.content.append("g")
-                        .attr("transform", "translate("+(0)+","+(0)+")")
+    this.xAxis2.transition().duration(1000).attr("transform", "translate("+(0)+","+(0)+")")
                         .call(d3.axisBottom(this.x).tickFormat(""));
-
     console.log("X axis drawn");
 
-    this.content.append("text")
-                .attr("transform","translate(" + (this.dimensions.width/2) + "," + (this.dimensions.height+20) + ")")
-                .style("text-anchor","middle")
-                .text("Age (millions of years ago)")
-                .classed("axis_text","true")
-                .style("font-size","6pt")
-                .style("font-family","sans-serif")
-                .style("font-weight","bold")
-                .style("fill","#0c448b")
-
+    this.xLabel.attr("transform","translate(" + (this.dimensions.width/2) + "," + (this.dimensions.height+20) + ")")
     console.log("X axis labelled");
   }
-  makeYAxis() {
+  createYAxis() {
       // Add Y axis
       this.y = d3.scaleLinear()
-        .domain([0, 5500])
-        .range([this.dimensions.height, 0]);
+                    .domain([0, 5500])
+                    .range([this.dimensions.height, 0]);
 
       this.yAxis = this.content.append("g")
-        .attr("transform", "translate(" + 0 + "," + 0 + ")")
-        .classed("axis_text","true")
-        .style("font-size","5pt")
-        .style("font-weight","bold")
-        .call(d3.axisRight(this.y).tickPadding(-26).tickFormat(d3.format("d")));
-
+                                .classed("axis_text","true")
+                                .style("font-size","5pt")
+                                .style("font-weight","bold");
       this.yAxis2 = this.content.append("g")
-        .attr("transform","translate("+this.dimensions.width+","+0+")")
-        .call(d3.axisLeft(this.y).tickFormat(""));
 
+      this.yLabel = this.content.append("text")
+                                 .text("Atmospheric CO")
+                                 .classed("axis_text","true")
+                                 .style("font-size","6pt")
+                                 .style("font-family","sans-serif")
+                                 .style("font-weight","bold")
+                                 .style("fill","#0c448b")
+      this.yLabel.append('tspan')
+                  .text('2')
+                  .style('font-size', '0.5rem')
+                  .attr('dx', '.1em')
+                  .attr('dy', '.2em')
+      this.yLabel.append("tspan")
+                  .text(" (ppm)")
+                  .style("font-size","6pt")
+                  .attr('dx', '0em')
+                  .attr('dy', '0em')
+  }
+  placeYAxis() {
+      this.yAxis.transition().duration(1000).attr("transform", "translate(" + 0 + "," + 0 + ")")
+        .call(d3.axisRight(this.y).tickPadding(-26).tickFormat(d3.format("d")));
+      this.yAxis2.transition().duration(1000).attr("transform","translate("+this.dimensions.width+","+0+")")
+          .call(d3.axisLeft(this.y).tickFormat(""));
       console.log("Y axis drawn");
 
-      var axisText = this.content.append("text")
-         .style("transform","translate(" + -25 + "px," + ((this.dimensions.height/2)+40) + "px) rotate(-90deg)")
-         .text("Atmospheric CO")
-         .classed("axis_text","true")
-         .style("font-size","6pt")
-         .style("font-family","sans-serif")
-         .style("font-weight","bold")
-         .style("fill","#0c448b")
-      axisText.append('tspan')
-          .text('2')
-          .style('font-size', '0.5rem')
-          .attr('dx', '.1em')
-          .attr('dy', '.2em')
-      axisText.append("tspan")
-          .text(" (ppm)")
-          .style("font-size","6pt")
-          .attr('dx', '0em')
-          .attr('dy', '0em')
-
-        console.log("Y Label added");
+      this.yLabel.style("transform","translate(" + -25 + "px," + ((this.dimensions.height/2)+40) + "px) rotate(-90deg)")
+      console.log("Y Label added");
   }
   replacementXAxis() {
       return d3.axisTop(this.x).tickPadding(-15)
@@ -841,7 +891,7 @@ class DynamicPlot extends Container {
                       //   .style("top", (d3.event.pageY - 28) + "px")
                     // });
     }
-  redrawPoints(zoom_in=true) {
+  redrawPoints() {
     var x = this.x
     var y = this.y
     var colorAxis = this.colorAxis
@@ -860,8 +910,6 @@ class DynamicPlot extends Container {
 
     var points = this.content.selectAll("circle").data(data)
 
-    if (zoom_in)
-    {
       points.exit().remove()
       points.enter().append("circle")
              .call(enter => enter.transition(this.content.transition().duration(1000)).style("opacity",1))
@@ -871,21 +919,7 @@ class DynamicPlot extends Container {
                          .attr("r",3)
                          .style("fill", function (data) {return colorAxis(data.method.concat(" ".concat(data.submethod)))})
                        .style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}} )
-    }
-    else {
-      // points.exit().remove()
-      // points.enter().append("circle")
-      // .call(enter => enter.transition(this.content.transition().duration(1000)).style("opacity",1))
-      //       .merge(points)
-      //       .attr("cx", function (data) {return x(data.age/1000);})
-      //       .attr("cy", function (data) {return y(data.co2);})
-      //       .attr("r",3)
-      //       .style("fill", function (data) {return colorAxis(data.method.concat(" ".concat(data.submethod)))})
-      //       .style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}} )
-            //.transition().duration(500)
-            //.style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}} )
-    }
-    //this.legend.move() NEEDS LEGEND
+
     this.buttonArray.move()
   }
 
