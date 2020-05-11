@@ -479,13 +479,37 @@ class CombinedStaticDynamicPlot extends Container {
 
         this.controlPanelButtons = new ButtonArray(this.controlPanel.content,[(this.controlPanel.dimensions.width/2)-(button_width/2),5],this)
         this.controlPanelButtons.addEntry(new ButtonEntry("Data",this.alignAxes,[button_width,button_height]))
-        this.controlPanelButtons.addEntry(new ButtonEntry("Image",this.alignAxes,[button_width,button_height]))
+        this.controlPanelButtons.addEntry(new ButtonEntry("Image",()=>{this.downloadImage();},[button_width,button_height]))
 
         this.controlPanelButtons.constant = true
         this.controlPanelButtons.direction = "vertical"
 
         this.controlPanelButtons.draw()
       }
+
+    // Button functions
+    downloadImage() {
+        var svgURL = new XMLSerializer().serializeToString(document.getElementById("plot_svg"));
+        console.log(svgURL);
+        var image = new Image();
+        image.src = 'data:image/svg+xml; charset=utf8, '+encodeURIComponent(svgURL);
+
+        image.onload = function() {
+            var canvas = document.createElement("canvas");
+            canvas.width = 5*this.width;
+            canvas.height = 5*this.height;
+
+            var context = canvas.getContext("2d");
+
+
+            context.scale(5,5)
+            context.drawImage(this,0,0);
+
+            var dataURL = canvas.toDataURL("png");
+            window.open(dataURL,'_blank');
+        }
+    }
+
 
     // Legend
     makeColorAxis() {
@@ -533,17 +557,21 @@ class CombinedStaticDynamicPlot extends Container {
             console.log("Changing size");
             this.dynamicPlot.changeSize = false;
             if (!this.dynamicPlot.isLarge) {
+                console.log("Small")
                 this.dynamicPlot.isLarge = true;
 
                 this.staticPlot.content.transition().duration(1000).attr("transform","translate("+(this.staticPlot.dimensions.margins.left+this.dynamicPlot.rightSide+100)+","+(this.staticPlot.dimensions.margins.top-this.dynamicPlot.topSide-50)+")");
-
                 this.dynamicPlot.dimensions.margins.top = 10;
-                this.dynamicPlot.resizeFunction(this.dynamicPlot.rightSide,this.dynamicPlot.topSide)
+                this.dynamicPlot.content.attr("transform","translate("+this.dynamicPlot.dimensions.margins.left+","+this.dynamicPlot.dimensions.margins.top+")");
+
+                this.dynamicPlot.resizeFunction(this.dynamicPlot.rightSide,this.dynamicPlot.topSide);
             }
             else if (this.dynamicPlot.isLarge) {
                 this.dynamicPlot.isLarge = false;
 
                 this.dynamicPlot.dimensions.margins.top = this.dynamicPlot.topMargin;
+                this.dynamicPlot.content.attr("transform","translate("+this.dynamicPlot.dimensions.margins.left+","+this.dynamicPlot.dimensions.margins.top+")");
+
                 this.dynamicPlot.resizeFunction(-this.dynamicPlot.rightSide,-this.dynamicPlot.topSide)
                 this.staticPlot.content.transition().duration(1000).attr("transform","translate("+(this.staticPlot.dimensions.margins.left)+","+(this.staticPlot.dimensions.margins.top)+")");
             }
@@ -576,14 +604,20 @@ class StaticPlot extends Container {
                     .attr("height",this.dimensions.height)
     }
     makeContent() {
-        //this.content = this.container.append("g")
-        //                                .attr("transform","translate("+this.dimensions.margins.left+","+this.dimensions.margins.top+")")
-        //                                .attr("width",this.dimensions.width)
-        //                                .attr("height",this.dimensions.height)
+        var canvas = document.createElement("canvas");
+        canvas.width = this.dimensions.width;
+        canvas.height = this.dimensions.height;
+        var context = canvas.getContext("2d");
+        context.imageSmoothingEnabled = false;
+
+        var img = new Image();
+        img.src = "images/subplots.svg";
+        img.onload = ()=> {
+              context.drawImage(img,0,0,this.dimensions.width,this.dimensions.height-2);
+              this.image.attr("href",canvas.toDataURL());
+          }
         this.image = this.content.append("svg:image")
-                    .attr("xlink:href", "images/subplots.svg")
-                    .attr("x",0)
-                    .attr("width",this.dimensions.width)
+                                      .style("opacity",1)
         }
 }
 class DynamicPlot extends Container {
@@ -671,10 +705,19 @@ class DynamicPlot extends Container {
   }
 
   createLogo() {
-    //this.imageContainer = this.content.append("g")
-    this.logo = this.content.append("svg:image")
-                            .attr("xlink:href", "images/logo.svg")
-                            .style("opacity",0.5)
+      var canvas = document.createElement("canvas");
+      canvas.width = 350;
+      canvas.height = 350;
+      var context = canvas.getContext("2d");
+
+      var img = new Image();
+      img.src = "/images/logo.svg";
+      img.onload = ()=> {
+            context.drawImage(img,0,0);
+            this.logo.attr("href",canvas.toDataURL());
+        }
+      this.logo = this.content.append("svg:image")
+                                    .style("opacity",0.5)
   }
   placeLogo() {
       this.logo.attr("x",0.7*this.dimensions.width)
@@ -750,7 +793,7 @@ class DynamicPlot extends Container {
   }
 
   resizeFunction(extra_width,extra_height) {
-      this.content.attr("transform","translate("+this.dimensions.margins.left+","+this.dimensions.margins.top+")");
+      //this.content.transition().duration(1000).attr("transform","translate("+this.dimensions.margins.left+","+this.dimensions.margins.top+")");
 
       var width = this.dimensions.width+extra_width;
       var height = this.dimensions.height+extra_height;
