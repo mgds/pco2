@@ -105,7 +105,7 @@ class Legend extends Container {
       this.entries = {}
       this.box_boolean = box_boolean
       //this.position = [(plot.dimensions.controls.width/2)-(100/2),0.2*plot.dimensions.global.height]
-      this.spacing = 12
+      this.spacing = 14
       this.hide = false
     //this.relative_position = [90,10]
   }
@@ -135,7 +135,7 @@ class Legend extends Container {
                           .append("circle")
                             .attr("cx",function(d){return d.position[0]})
                             .attr("cy",function(d){return d.position[1]})
-                            .attr("r",4)
+                            .attr("r",3)
                             .style("fill",function(d){return d.color})
                             .on("click",(d)=>this.itemClicked(d))
         this.legend_group.selectAll("text")
@@ -145,13 +145,14 @@ class Legend extends Container {
                             .text(function(d){return d.name})
                             .attr("x",function(d){return d.position[0]+8})
                             .attr("y",function(d){return d.position[1]+5})
-                            .attr("class","h6")
-                            //.attr("font-size", "16px")
+                            .attr("font-size", "11px")
+                            .attr("font-family","Arial")
+                            .attr("font-weight","bold")
+                            //.attr("class","h6")
                             .on("click",(d)=>this.itemClicked(d))
-
-                            //.attr("transform","translate("+(item.position[0]+10)+","+(item.position[1]+5)+")")
-                            //.style("text-anchor","start")
-                            .style("fill","#396aa8")
+                            .attr("fill","#396aa8")
+                            //.attr("font-family","Oswald")
+                            //.attr("font-weight","500")
   }
   redraw() {
     var x_start = this.dimensions.margins.left
@@ -185,7 +186,7 @@ class Legend extends Container {
             legend_circles.enter().append("circle")
                             .attr("cx",function(d){return d.position[0]})
                             .attr("cy",function(d){return d.position[1]})
-                            .attr("r",4)
+                            //.attr("r",4)
                             .style("fill",function(d){return d.color})
                             .style("opacity",function(d){
                               if (d.draw) {return 1}
@@ -194,7 +195,7 @@ class Legend extends Container {
                             .on("click",(d)=>this.itemClicked(d))
             legend_circles.attr("cx",function(d){return d.position[0]})
                             .attr("cy",function(d){return d.position[1]})
-                            .attr("r",4)
+                            //.attr("r",4)
                             .style("fill",function(d){return d.color})
                             .style("opacity",function(d){
                               if (d.draw) {return 1}
@@ -208,11 +209,13 @@ class Legend extends Container {
 
                           legend_text.exit().remove()
                           legend_text.enter().append("text")
-                            .text(function(d){return d.name})
+                            .text(function(d){return d.name.bold()})
                             .attr("x",function(d){return d.position[0]+8})
                             .attr("y",function(d){return d.position[1]+5})
-                            .attr("font-size", "16px")
-                            .attr("class","h6")
+                            .attr("font-size", "11px")
+                            .attr("font-family","Arial")
+                            .attr("font-weight","bold")
+                            //.attr("class","h6")
                             .style("fill",function(d){
                             if (d.draw) {
                               return "#396aa8"
@@ -226,8 +229,10 @@ class Legend extends Container {
                           legend_text.text(function(d){return d.name})
                             .attr("x",function(d){return d.position[0]+8})
                             .attr("y",function(d){return d.position[1]+5})
-                            .attr("font-size", "16px")
-                            .attr("class","h6")
+                            .attr("font-size", "11px")
+                            .attr("font-family","Arial")
+                            .attr("font-weight","bold")
+                            //.attr("class","h6")
                             .style("fill",function(d){
                             if (d.draw) {
                               return "#396aa8"
@@ -240,9 +245,9 @@ class Legend extends Container {
 
   }
   itemClicked(item) {
-      item.drawFlip()
-      this.redraw()
-      this.dynamicPlot.redrawPoints()
+      item.drawFlip();
+      this.redraw();
+      this.dynamicPlot.redrawPoints();
   }
   move() {
     this.legend_group.raise()
@@ -331,7 +336,9 @@ class ButtonArray {
                             .text(function(d){return d.name})
                             .attr("x",function(d){return d.position[0] + 0.5*d.size[0]})
                             .attr("y",function(d){return d.position[1] + 0.5*d.size[1] + 8})
-                            .attr("class","h3")
+                            //.attr("class","h3")
+                            .attr("font-family","Arial")
+                            .attr("font-weight","bold")
                             .style("opacity",0)
                             .attr("font-size", "16px")
                             .style("text-anchor","middle")
@@ -427,7 +434,7 @@ class CombinedStaticDynamicPlot extends Container {
 
         this.staticPlot = new StaticPlot(this.outerSvg,1000/631,this.dimensions);
         this.dynamicPlot = new DynamicPlot(this.outerSvg,this.staticPlot.dimensions,this.colorAxis);
-        this.dynamicPlot.content.on("mouseleave",()=>this.hiderMouseOut())
+        //this.dynamicPlot.content.on("mouseleave",()=>this.hiderMouseOut())
 
         this.controlPanel = new Container(this.outerSvg,"control_panel");
         this.controlPanel.dimensions.width = this.staticPlot.dimensions.margins.left
@@ -447,7 +454,7 @@ class CombinedStaticDynamicPlot extends Container {
     setDimensions(aspectRatio) {
         this.dimensions = new Dimensions();
         this.dimensions.aspectRatio = this.aspectRatio
-        this.dimensions.width = 500
+        this.dimensions.width = 550;
         this.dimensions.height =this.dimensions.width/this.dimensions.aspectRatio
     }
     makeSvg() {
@@ -462,10 +469,6 @@ class CombinedStaticDynamicPlot extends Container {
                                               .attr("id","plot_svg")
                                               .attr("width",this.dimensions.width)
                                               .attr("height",this.dimensions.height)
-                                              .on("mouseenter",()=>this.mouseEnterEvent())
-                                              .on("mouseleave",()=>this.mouseLeaveEvent())
-
-
         }
     makeBackground() {
         this.background = this.outerSvg.append("rect")
@@ -477,7 +480,7 @@ class CombinedStaticDynamicPlot extends Container {
         var button_width = 100
         var button_height = 30
 
-        this.controlPanelButtons = new ButtonArray(this.controlPanel.content,[(this.controlPanel.dimensions.width/2)-(button_width/2),5],this)
+        this.controlPanelButtons = new ButtonArray(this.controlPanel.content,[10,5],this)
         this.controlPanelButtons.addEntry(new ButtonEntry("Data",this.alignAxes,[button_width,button_height]))
         this.controlPanelButtons.addEntry(new ButtonEntry("Image",()=>{this.downloadImage();},[button_width,button_height]))
 
@@ -485,10 +488,15 @@ class CombinedStaticDynamicPlot extends Container {
         this.controlPanelButtons.direction = "vertical"
 
         this.controlPanelButtons.draw()
+        //this.controlPanelButtons.button_group.selectAll("rect").on("mouseenter",()=>this.mouseLeaveEvent())
       }
 
     // Button functions
     downloadImage() {
+        this.dynamicPlot.buttonArray.entries["Align"].opacity = 0;
+        this.dynamicPlot.buttonArray.entries["Hide"].opacity = 0;
+        console.log("Opacity zero");
+
         var svgURL = new XMLSerializer().serializeToString(document.getElementById("plot_svg"));
         console.log(svgURL);
         var image = new Image();
@@ -501,7 +509,6 @@ class CombinedStaticDynamicPlot extends Container {
 
             var context = canvas.getContext("2d");
 
-
             context.scale(5,5)
             context.drawImage(this,0,0);
 
@@ -509,7 +516,6 @@ class CombinedStaticDynamicPlot extends Container {
             window.open(dataURL,'_blank');
         }
     }
-
 
     // Legend
     makeColorAxis() {
@@ -524,34 +530,13 @@ class CombinedStaticDynamicPlot extends Container {
         this.legend.addEntry(new LegendEntry(item,"circle",this.colorAxis(item)))
       });
 
-      //console.log("Control panel buttons")
-      //console.log(this.controlPanelButtons.entries["Spare1"].position[1])
-
       this.legend.dimensions.margins.top = this.controlPanelButtons.entries["Image"].position[1]+10;
       this.legend.dimensions.margins.left = this.controlPanelButtons.position[0];
       this.legend.draw();
     }
 
-    // Mouse events
-    mouseEnterEvent() {
-      console.log("Mouse over plot")
-      this.dynamicPlot.buttonArray.draw()
-    }
-    mouseLeaveEvent() {
-      console.log("Mouse out plot")
-      this.dynamicPlot.buttonArray.button_group.selectAll("rect")
-                                    .transition().duration(1000)
-                                    .style("opacity",0)
-                                    .remove()
-      this.dynamicPlot.buttonArray.button_group.selectAll("text")
-                                    .transition().duration(500)
-                                    .style("opacity",0)
-                                    .remove()
-    }
-
     hiderMouseOut() {
         console.log("Hider")
-        console.log(this.dynamicPlot.changeSize)
         if (this.dynamicPlot.changeSize)
         {
             console.log("Changing size");
@@ -605,16 +590,20 @@ class StaticPlot extends Container {
     }
     makeContent() {
         var canvas = document.createElement("canvas");
-        canvas.width = this.dimensions.width;
-        canvas.height = this.dimensions.height;
+        canvas.width = 1030;
+        canvas.height = canvas.width*(172.656/272.214);
         var context = canvas.getContext("2d");
-        context.imageSmoothingEnabled = false;
+        //context.imageSmoothingEnabled = false;
 
         var img = new Image();
         img.src = "images/subplots.svg";
         img.onload = ()=> {
-              context.drawImage(img,0,0,this.dimensions.width,this.dimensions.height-2);
+              context.drawImage(img,0,0);
               this.image.attr("href",canvas.toDataURL());
+
+              this.image.attr("x",0)
+                          .attr("y",0)
+                          .attr("width",this.dimensions.width)
           }
         this.image = this.content.append("svg:image")
                                       .style("opacity",1)
@@ -633,6 +622,8 @@ class DynamicPlot extends Container {
       this.colorAxis = colorAxis;
 
       this.beginPlot()
+      this.content.on("mouseenter",()=>this.mouseEnterEvent())
+      this.content.on("mouseleave",()=>this.mouseLeaveEvent())
   }
 
   // Starting plot
@@ -732,6 +723,23 @@ class DynamicPlot extends Container {
   boxMouseOut() {
     console.log("Mouse out button")
     this.button.attr("opacity",0.3)
+  }
+
+  // Mouse events
+  mouseEnterEvent() {
+    console.log("Mouse over plot")
+    this.buttonArray.draw()
+  }
+  mouseLeaveEvent() {
+    console.log("Mouse out plot")
+    this.buttonArray.button_group.selectAll("rect")
+                                  .transition().duration(100)
+                                  .style("opacity",0)
+                                  .remove()
+    this.buttonArray.button_group.selectAll("text")
+                                  .transition().duration(50)
+                                  .style("opacity",0)
+                                  .remove()
   }
 
   // Brush
@@ -842,6 +850,9 @@ class DynamicPlot extends Container {
                               .classed("axis_text","true")
                               .style("font-size","5pt")
                               .style("font-weight","bold")
+                              //.call(d3.axisTop(this.x).tickPadding(-15))
+
+
       this.xAxis2 = this.content.append("g")
 
       this.xLabel = this.content.append("text")
@@ -855,10 +866,22 @@ class DynamicPlot extends Container {
   }
   placeXAxis() {
     // Add X axis
-    this.xAxis.transition().duration(1000).attr("transform", "translate(" + 0 + "," + (this.dimensions.height) + ")")
-                        .call(d3.axisTop(this.x).tickPadding(-15));
+    this.xAxis.transition().duration(1000)
+                        .attr("transform", "translate(" + 0 + "," + (this.dimensions.height) + ")")
+                        .call(d3.axisTop(this.x).tickPadding(-15))
+    this.xAxis.selectAll("line")
+                .style("stroke","#0c448b");
+    this.xAxis.selectAll(".domain")
+                .style("stroke","#0c448b");
+    this.xAxis.selectAll("text")
+                .style("fill","#0c448b");
     this.xAxis2.transition().duration(1000).attr("transform", "translate("+(0)+","+(0)+")")
                         .call(d3.axisBottom(this.x).tickFormat(""));
+    this.xAxis2.selectAll("line")
+                .style("stroke","#0c448b");
+    this.xAxis2.selectAll(".domain")
+                .style("stroke","#0c448b");
+
     console.log("X axis drawn");
 
     this.xLabel.attr("transform","translate(" + (this.dimensions.width/2) + "," + (this.dimensions.height+20) + ")")
@@ -873,7 +896,9 @@ class DynamicPlot extends Container {
       this.yAxis = this.content.append("g")
                                 .classed("axis_text","true")
                                 .style("font-size","5pt")
-                                .style("font-weight","bold");
+                                .style("font-weight","bold")
+                                    //.style("fill","3333ff")
+                                    //.attr("fill","#0c448b");
       this.yAxis2 = this.content.append("g")
 
       this.yLabel = this.content.append("text")
@@ -886,19 +911,33 @@ class DynamicPlot extends Container {
       this.yLabel.append('tspan')
                   .text('2')
                   .style('font-size', '0.5rem')
-                  .attr('dx', '.1em')
-                  .attr('dy', '.2em')
+                  .attr('dx','.1em')
+                  .attr('dy','.2em')
       this.yLabel.append("tspan")
                   .text(" (ppm)")
                   .style("font-size","6pt")
-                  .attr('dx', '0em')
-                  .attr('dy', '0em')
+                  .attr('dx','0em')
+                  .attr('dy','0em')
+
   }
   placeYAxis() {
       this.yAxis.transition().duration(1000).attr("transform", "translate(" + 0 + "," + 0 + ")")
         .call(d3.axisRight(this.y).tickPadding(-26).tickFormat(d3.format("d")));
+
+        this.yAxis.selectAll("line")
+                    .style("stroke","#0c448b");
+        this.yAxis.selectAll(".domain")
+                    .style("stroke","#0c448b");
+        this.yAxis.selectAll("text")
+                    .style("fill","#0c448b");
+
       this.yAxis2.transition().duration(1000).attr("transform","translate("+this.dimensions.width+","+0+")")
           .call(d3.axisLeft(this.y).tickFormat(""));
+      this.yAxis2.selectAll(".domain")
+          .style("stroke","#0c448b");
+      this.yAxis2.selectAll("text")
+          .style("fill","#0c448b");
+
       console.log("Y axis drawn");
 
       this.yLabel.style("transform","translate(" + -25 + "px," + ((this.dimensions.height/2)+40) + "px) rotate(-90deg)")
@@ -923,7 +962,7 @@ class DynamicPlot extends Container {
                      .append("circle")
                       .attr("cx", function (data) {return x(data.age/1000);} )
                       .attr("cy", function (d) { return y(d.co2); } )
-                      .attr("r", 3)
+                      .attr("r",2)
                       .style("fill", function (data) {return colorAxis(data.method.concat(" ".concat(data.submethod)))})
                       // .on("mouseover", function(d) {
                       //   div.transition()
@@ -950,18 +989,28 @@ class DynamicPlot extends Container {
     var smallY = y.domain()[0]
     var bigY = y.domain()[1]
 
+    console.log("X");
+    console.log(smallX);
+    console.log(bigX);
+
+    console.log("Y");
+    console.log(smallY);
+    console.log(bigY);
+
 
     var points = this.content.selectAll("circle").data(data)
 
       points.exit().remove()
       points.enter().append("circle")
-             .call(enter => enter.transition(this.content.transition().duration(1000)).style("opacity",1))
+             //.call(enter => enter.transition(this.content.transition().duration(1000)).style("opacity",0.5))
              .merge(points)
                          .attr("cx", function (data) {return x(data.age/1000);})
                          .attr("cy", function (data) {return y(data.co2);})
-                         .attr("r",3)
+                         .attr("r",2)
+                         .style("opacity",0)
+                         .call(enter => enter.transition(this.content.transition().duration(500)).style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}}))
                          .style("fill", function (data) {return colorAxis(data.method.concat(" ".concat(data.submethod)))})
-                       .style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}} )
+        //points.transition().duration(1000).style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}} )
 
     this.buttonArray.move()
   }
