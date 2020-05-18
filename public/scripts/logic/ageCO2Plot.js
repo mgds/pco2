@@ -159,9 +159,6 @@ class Legend extends Container {
     var y_start = this.dimensions.margins.top
     var i = 0
 
-    //this.legend_group = this.innerSvg.append("g")
-    //                                  .attr("transform","translate("+x_start+","+y_start+")")
-
     var entry_array = []
     for (var name in this.entries) {
       var item = this.entries[name]
@@ -184,18 +181,19 @@ class Legend extends Container {
 
             legend_circles.exit().remove()
             legend_circles.enter().append("circle")
-                            .attr("cx",function(d){return d.position[0]})
-                            .attr("cy",function(d){return d.position[1]})
-                            //.attr("r",4)
-                            .style("fill",function(d){return d.color})
-                            .style("opacity",function(d){
-                              if (d.draw) {return 1}
-                              else {return 0.3}
-                            })
-                            .on("click",(d)=>this.itemClicked(d))
+                                    .merge(legend_circles)
+                                        .attr("cx",function(d){return d.position[0]})
+                                        .attr("cy",function(d){return d.position[1]})
+                                        .attr("r",3)
+                                        .style("fill",function(d){return d.color})
+                                        .style("opacity",function(d){
+                                          if (d.draw) {return 1}
+                                          else {return 0.3}
+                                        })
+                                        .on("click",(d)=>this.itemClicked(d))
+
             legend_circles.attr("cx",function(d){return d.position[0]})
                             .attr("cy",function(d){return d.position[1]})
-                            //.attr("r",4)
                             .style("fill",function(d){return d.color})
                             .style("opacity",function(d){
                               if (d.draw) {return 1}
@@ -209,7 +207,7 @@ class Legend extends Container {
 
                           legend_text.exit().remove()
                           legend_text.enter().append("text")
-                            .text(function(d){return d.name.bold()})
+                            .text(function(d){return d.name})
                             .attr("x",function(d){return d.position[0]+8})
                             .attr("y",function(d){return d.position[1]+5})
                             .attr("font-size", "11px")
@@ -999,18 +997,15 @@ class DynamicPlot extends Container {
 
 
     var points = this.content.selectAll("circle").data(data)
-
       points.exit().remove()
       points.enter().append("circle")
-             //.call(enter => enter.transition(this.content.transition().duration(1000)).style("opacity",0.5))
              .merge(points)
-                         .attr("cx", function (data) {return x(data.age/1000);})
-                         .attr("cy", function (data) {return y(data.co2);})
-                         .attr("r",2)
-                         .style("opacity",0)
-                         .call(enter => enter.transition(this.content.transition().duration(500)).style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}}))
-                         .style("fill", function (data) {return colorAxis(data.method.concat(" ".concat(data.submethod)))})
-        //points.transition().duration(1000).style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}} )
+                 .attr("cx", function (data) {return x(data.age/1000);})
+                 .attr("cy", function (data) {return y(data.co2);})
+                 .attr("r",2)
+                 .style("opacity",0)
+                 .call(enter => enter.transition(this.content.transition().duration(500)).style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}}))
+                 .style("fill", function (data) {return colorAxis(data.method.concat(" ".concat(data.submethod)))})
 
     this.buttonArray.move()
   }
