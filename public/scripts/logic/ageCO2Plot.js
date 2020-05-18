@@ -733,7 +733,9 @@ class DynamicPlot extends Container {
     this.xAxis.transition().duration(1000).call(this.replacementXAxis())
     this.yAxis.transition().duration(1000).call(this.replacementYAxis())
 
-    this.changeSize = true;
+    if (!this.isLarge) {
+      this.changeSize = true;
+    }
     this.parent.hiderMouseOut();
     this.redrawPoints();
   }
