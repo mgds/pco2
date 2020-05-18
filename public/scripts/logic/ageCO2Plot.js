@@ -491,12 +491,7 @@ class CombinedStaticDynamicPlot extends Container {
 
     // Button functions
     downloadImage() {
-        this.dynamicPlot.buttonArray.entries["Align"].opacity = 0;
-        this.dynamicPlot.buttonArray.entries["Hide"].opacity = 0;
-        console.log("Opacity zero");
-
         var svgURL = new XMLSerializer().serializeToString(document.getElementById("plot_svg"));
-        console.log(svgURL);
         var image = new Image();
         image.src = 'data:image/svg+xml; charset=utf8, '+encodeURIComponent(svgURL);
 
@@ -511,7 +506,13 @@ class CombinedStaticDynamicPlot extends Container {
             context.drawImage(this,0,0);
 
             var dataURL = canvas.toDataURL("png");
-            window.open(dataURL,'_blank');
+
+            var a = document.createElement('a');
+            a.href = dataURL;
+            a.download = "age_co2_plot.png";
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
         }
     }
 
@@ -695,8 +696,8 @@ class DynamicPlot extends Container {
 
   createLogo() {
       var canvas = document.createElement("canvas");
-      canvas.width = 350;
-      canvas.height = 350;
+      canvas.width = 380;
+      canvas.height = 380;
       var context = canvas.getContext("2d");
 
       var img = new Image();
@@ -709,7 +710,7 @@ class DynamicPlot extends Container {
                                     .style("opacity",0.5)
   }
   placeLogo() {
-      this.logo.attr("x",0.7*this.dimensions.width)
+      this.logo.attr("x",0.73*this.dimensions.width)
                   .attr("y",10)
                   .attr("width",0.25*this.dimensions.width)
   }
@@ -788,7 +789,7 @@ class DynamicPlot extends Container {
   doubleClickFunction() {
     console.log("Double click")
     this.x.domain([70,0])
-    this.y.domain([0,8000])
+    this.y.domain([0,5500])
 
     this.xAxis.transition().duration(1000).call(this.replacementXAxis())
     this.yAxis.transition().duration(1000).call(this.replacementYAxis())
@@ -986,15 +987,6 @@ class DynamicPlot extends Container {
     var bigX = x.domain()[0]
     var smallY = y.domain()[0]
     var bigY = y.domain()[1]
-
-    console.log("X");
-    console.log(smallX);
-    console.log(bigX);
-
-    console.log("Y");
-    console.log(smallY);
-    console.log(bigY);
-
 
     var points = this.content.selectAll("circle").data(data)
       points.exit().remove()
