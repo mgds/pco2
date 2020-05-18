@@ -2,7 +2,7 @@ var pco2Controllers = angular.module('pco2Controllers', ['ngSanitize'])
 .run(["$rootScope","$location","$window",function($rootScope, $location, $window) {
   $rootScope.$on('$routeChangeSuccess', function () {
     //console.log("hit: "+$location.url());
-    //$window.ga('send', 'pageview', $location.url() );
+    $window.ga('send', 'pageview', $location.url() );
   });
 }]);
 
