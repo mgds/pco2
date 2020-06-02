@@ -1,59 +1,17 @@
-class Dimension_Collection {
-  constructor(container) {
-    this.container = container
-    this.set()
-  }
-  set() {
-    this.setGlobal()
-    this.setMainAnchors()
-    this.setControlAnchors()
-    this.setStaticsAnchors()
-    this.setDependents()
-  }
-  setGlobal() {
-    this.global = new Dimensions()
-    this.global.width = parseInt(this.container.style("width"));
-    this.global.aspectRatio = 2.5/6;
-    this.global.height = this.global.width*this.global.aspectRatio
-  }
-  setMainAnchors() {
-    this.main = new Dimensions()
-
-    this.main.margins.bottom = 0
-    this.main.margins.left = 58
-  }
-  setStaticsAnchors() {
-    this.statics = new Dimensions()
-
-    this.statics.margins.top = 10
-    this.statics.margins.bottom = 0
-    this.statics.margins.left = 30
-    this.statics.margins.right = 10
-  }
-  setControlAnchors() {
-    this.controls = new Dimensions()
-
-    this.controls.margins.top = 0
-    this.controls.margins.bottom = 0
-    this.controls.margins.left = 0
-    this.controls.margins.right = 0
-  }
-  setDependents() {
-    this.controls.height = this.global.height
-    this.controls.width = 0.25*this.global.width
-
-    this.statics.width = this.global.width-(this.statics.margins.left+this.statics.margins.right)-this.controls.width
-    this.statics.height = this.global.height-(this.statics.margins.top+this.statics.margins.bottom)
-    this.statics.margins.left = this.controls.width+this.statics.margins.left
-
-    this.main.height = 0.5*this.statics.height
-    this.main.width = 0.635*this.statics.width
-    this.main.margins.top = (0.3*this.statics.height)+this.statics.margins.top
-    this.main.margins.left = this.controls.width+this.main.margins.left
-  }
+class Container { // A generic class to contain any content, used to derive more specific classes
+    constructor(parent,name) { // Requires a parent div, and a name for an id, automatically sets dimensions
+        this.parent = parent
+        this.dimensions = new Dimensions()
+        this.content = this.parent.append("g")
+                                        .attr("transform","translate("+this.dimensions.margins.left+","+this.dimensions.margins.top+")")
+                                        .attr("width",this.dimensions.width)
+                                        .attr("height",this.dimensions.height)
+                                         .attr("id",name)
+    }
 }
-class Dimensions {
-  constructor() {
+
+class Dimensions { // A generic class to define the dimensions of something (e.g. width/height/aspect ratio/margin size)
+  constructor() { // Assume default values are Null and margins are 0
     this.width = null
     this.height = null
 
@@ -61,14 +19,8 @@ class Dimensions {
 
     this.margins = {top:0,bottom:0,left:0,right:0}
   }
-  matchLeftRight(input) {
-    this.margins.left = input.margins.left
-    this.margins.right = input.margins.right
-  }
-  matchTopBottom(input) {
-    this.margins.top = input.margins.top
-    this.margins.bottom = input.margins.bottom
-  }
+
+  // Setter methods
   setHeight(height) {
      this.height = height
   }
@@ -86,41 +38,31 @@ class Dimensions {
   }
 }
 
-class Container {
-    constructor(parent,name) {
-        this.parent = parent
-        this.dimensions = new Dimensions()
-        this.content = this.parent.append("g")
-                                        .attr("transform","translate("+this.dimensions.margins.left+","+this.dimensions.margins.top+")")
-                                        .attr("width",this.dimensions.width)
-                                        .attr("height",this.dimensions.height)
-                                         .attr("id",name)
-    }
-}
-
-class Legend extends Container {
-  constructor(container,plot,box_boolean=false) {
-      super(container,"legend");
-      this.plot = plot
-      this.entries = {}
-      this.box_boolean = box_boolean
-      //this.position = [(plot.dimensions.controls.width/2)-(100/2),0.2*plot.dimensions.global.height]
-      this.spacing = 14
-      this.hide = false
-    //this.relative_position = [90,10]
+class Legend extends Container { // A class for the legend, which inherits a container structure
+  constructor(container) {
+      super(container,"legend"); // Run the superclass constructor
+      this.entries = {} // These are the individual elements which make up the legend
+      this.spacing = 14 // Manually defined
+      this.hide = false // Defines whether to hide unused entries
   }
-  addEntry(entry) {
+
+  // Addition methods
+  addEntry(entry) { // Adds a new individual entry to the set
     name = entry.name
     this.entries[name] = (entry)
   }
-  draw() {
+
+  // Display methods
+  draw() { // Creates the elements of the legend
     var x_start = this.dimensions.margins.left
     var y_start = this.dimensions.margins.top
     var i = 0
 
+    // Create a containing group
     this.legend_group = this.content.append("g")
                                       .attr("transform","translate("+x_start+","+y_start+")")
 
+    // Calculate the position of each entry
     var entry_array = []
     for (var name in this.entries) {
         var item = this.entries[name]
@@ -129,36 +71,36 @@ class Legend extends Container {
         i++
       }
 
-        this.legend_group.selectAll("circle")
-                          .data(entry_array)
-                          .enter()
-                          .append("circle")
-                            .attr("cx",function(d){return d.position[0]})
-                            .attr("cy",function(d){return d.position[1]})
-                            .attr("r",3)
-                            .style("fill",function(d){return d.color})
-                            .on("click",(d)=>this.itemClicked(d))
-        this.legend_group.selectAll("text")
-                          .data(entry_array)
-                          .enter()
-                          .append("text")
-                            .text(function(d){return d.name})
-                            .attr("x",function(d){return d.position[0]+8})
-                            .attr("y",function(d){return d.position[1]+5})
-                            .attr("font-size", "11px")
-                            .attr("font-family","Arial")
-                            .attr("font-weight","bold")
-                            //.attr("class","h6")
-                            .on("click",(d)=>this.itemClicked(d))
-                            .attr("fill","#396aa8")
-                            //.attr("font-family","Oswald")
-                            //.attr("font-weight","500")
+    // Bind the data and create a series of circles
+    this.legend_group.selectAll("circle")
+                      .data(entry_array)
+                      .enter()
+                      .append("circle")
+                        .attr("cx",function(d){return d.position[0]})
+                        .attr("cy",function(d){return d.position[1]})
+                        .attr("r",3) // Manually defined radius
+                        .style("fill",function(d){return d.color})
+                        .on("click",(d)=>this.itemClicked(d))
+    // Create a series of text elements for legend labels
+    this.legend_group.selectAll("text")
+                      .data(entry_array)
+                      .enter()
+                      .append("text")
+                        .text(function(d){return d.name})
+                        .attr("x",function(d){return d.position[0]+8})
+                        .attr("y",function(d){return d.position[1]+5})
+                        .attr("font-size", "11px") // Manually defined
+                        .attr("font-family","Arial")
+                        .attr("font-weight","bold")
+                        .on("click",(d)=>this.itemClicked(d))
+                        .attr("fill","#396aa8") // To match website schema
   }
-  redraw() {
+  redraw() { // Redraws the legend taking into account any changes made
     var x_start = this.dimensions.margins.left
     var y_start = this.dimensions.margins.top
     var i = 0
 
+    // Calculate the position of legend entries, this time taking account of any hidden entries
     var entry_array = []
     for (var name in this.entries) {
       var item = this.entries[name]
@@ -172,123 +114,121 @@ class Legend extends Container {
           entry_array.push(item)
           item.position = [0,y_start+(i*this.spacing)]
           i++
+          }
         }
       }
-      }
 
-        var legend_circles = this.legend_group.selectAll("circle")
+    // Bind the data to a varial
+    var legend_circles = this.legend_group.selectAll("circle")
+                      .data(entry_array)
+
+
+    legend_circles.exit().remove() // Remove unncecessary markers
+    legend_circles.enter().append("circle") // Create new markers if necessary
+                            .merge(legend_circles)
+                                .attr("cx",function(d){return d.position[0]})
+                                .attr("cy",function(d){return d.position[1]})
+                                .attr("r",3) // Manually defined radius
+                                .style("fill",function(d){return d.color})
+                                .style("opacity",function(d){
+                                  if (d.draw) {return 1}
+                                  else {return 0.3}
+                                })
+                                .on("click",(d)=>this.itemClicked(d))
+
+    // For those markers which have not been destroyed or created
+    legend_circles.attr("cx",function(d){return d.position[0]})
+                    .attr("cy",function(d){return d.position[1]})
+                    .style("fill",function(d){return d.color})
+                    .style("opacity",function(d){
+                      if (d.draw) {return 1}
+                      else {return 0.3}
+                    })
+                    .on("click",(d)=>this.itemClicked(d))
+
+    // Bind the data to a variable
+    var legend_text = this.legend_group.selectAll("text")
                           .data(entry_array)
 
-            legend_circles.exit().remove()
-            legend_circles.enter().append("circle")
-                                    .merge(legend_circles)
-                                        .attr("cx",function(d){return d.position[0]})
-                                        .attr("cy",function(d){return d.position[1]})
-                                        .attr("r",3)
-                                        .style("fill",function(d){return d.color})
-                                        .style("opacity",function(d){
-                                          if (d.draw) {return 1}
-                                          else {return 0.3}
-                                        })
-                                        .on("click",(d)=>this.itemClicked(d))
+    legend_text.exit().remove() // Remove unncecessary text entries
+    legend_text.enter().append("text") // Add any new entries as required
+        .text(function(d){return d.name})
+        .attr("x",function(d){return d.position[0]+8})
+        .attr("y",function(d){return d.position[1]+5})
+        .attr("font-size", "11px") // Manually set
+        .attr("font-family","Arial")
+        .attr("font-weight","bold")
+        .style("fill",function(d){
+            if (d.draw) {return "#396aa8"} // Full color
+            else {return "#b4cae5"} // Greyed out
+        })
+        .on("click",(d)=>this.itemClicked(d))
 
-            legend_circles.attr("cx",function(d){return d.position[0]})
-                            .attr("cy",function(d){return d.position[1]})
-                            .style("fill",function(d){return d.color})
-                            .style("opacity",function(d){
-                              if (d.draw) {return 1}
-                              else {return 0.3}
-                            })
-                            .on("click",(d)=>this.itemClicked(d))
-
-
-        var legend_text = this.legend_group.selectAll("text")
-                          .data(entry_array)
-
-                          legend_text.exit().remove()
-                          legend_text.enter().append("text")
-                            .text(function(d){return d.name})
-                            .attr("x",function(d){return d.position[0]+8})
-                            .attr("y",function(d){return d.position[1]+5})
-                            .attr("font-size", "11px")
-                            .attr("font-family","Arial")
-                            .attr("font-weight","bold")
-                            //.attr("class","h6")
-                            .style("fill",function(d){
-                            if (d.draw) {
-                              return "#396aa8"
-                            }
-                            else {
-                              return "#b4cae5"
-                            }
-                          })
-                            .on("click",(d)=>this.itemClicked(d))
-
-                          legend_text.text(function(d){return d.name})
-                            .attr("x",function(d){return d.position[0]+8})
-                            .attr("y",function(d){return d.position[1]+5})
-                            .attr("font-size", "11px")
-                            .attr("font-family","Arial")
-                            .attr("font-weight","bold")
-                            //.attr("class","h6")
-                            .style("fill",function(d){
-                            if (d.draw) {
-                              return "#396aa8"
-                            }
-                            else {
-                              return "#b4cae5"
-                            }
-                          })
-                            .on("click",(d)=>this.itemClicked(d))
-
+      // For the legend text entries that are not created or destroyed
+      legend_text.text(function(d){return d.name})
+        .attr("x",function(d){return d.position[0]+8})
+        .attr("y",function(d){return d.position[1]+5})
+        .attr("font-size", "11px")
+        .attr("font-family","Arial")
+        .attr("font-weight","bold")
+        .style("fill",function(d){
+            if (d.draw) {return "#396aa8"} // Full color
+            else {return "#b4cae5"} // Greyed out
+        })
+        .on("click",(d)=>this.itemClicked(d))
   }
+
   itemClicked(item) {
-      item.drawFlip();
-      this.redraw();
-      this.dynamicPlot.redrawPoints();
+      item.drawFlip(); // Changes the draw flag from on to off or vice versa
+      this.redraw(); // Redraws the entire legend
+      this.dynamicPlot.redrawPoints(); // Redraws the points with different proxies plotted
   }
   move() {
-    this.legend_group.raise()
+    this.legend_group.raise() // Brings the legend to the top so no data/background/anything is overlapping it
   }
 }
-class LegendEntry {
-  constructor(name="",symbol=null,color="#ffffff") {
+class LegendEntry { // Class to hold an individual legend entry (with a marker and text and their properties)
+  constructor(name="",color="#ffffff") {
     this.name = name
-    this.symbol = symbol
     this.color = color
     this.draw = true
   }
-  drawFlip() {
+  drawFlip() { // Reverses the draw flag (determining whether the current entry is active)
     this.draw = !this.draw
   }
 }
 
-class ButtonArray {
+class ButtonArray { // A container for a one dimensional array of buttons
   constructor(container,position,global,direction="horizontal") {
     this.container = container
     this.position = position
-    this.spacing = 10
+    this.spacing = 10 // Manually defined
     this.entries = {}
-    this.constant = false
-    this.global = global
-    this.direction = direction
+    this.constant = false // True is the buttons are always shown (as opposed to sometimes hidden)
+    this.global = global // ???
+    this.direction = direction // Horizontal/vertical
 
     var x_start = this.position[0]
     var y_start = this.position[1]
 
+    // Create a group for the buttons to reside in
     this.button_group = this.container.append("g")
                                           .attr("id","control_buttons")
                                           .attr("transform","translate("+x_start+","+y_start+")")
   }
-  addEntry(entry) {
+
+  // Addition methods
+  addEntry(entry) { // Adds an indiviaul button to the array
     name = entry.name
     this.entries[name] = entry
   }
-  draw() {
+
+  draw() { // Creates the necessary elements to draw the buttons
     var x_start = this.position[0]
     var y_start = this.position[1]
     var i = 0
 
+    // Calculate the position of each button by iterating from the first one
     var entry_array = []
     for (var name in this.entries) {
         var item = this.entries[name]
@@ -302,65 +242,63 @@ class ButtonArray {
         i++
       }
 
-        this.button_group.selectAll("rect")
-                          .data(entry_array)
-                          .enter()
-                          .append("rect")
-                            .attr("x",function(d){return d.position[0]})
-                            .attr("y",function(d){return d.position[1]})
-                            .attr("width",function(d){return d.size[0]})
-                            .attr("height",function(d){return d.size[1]})
-                            .style("fill",function(d){return d.color})
-                            .style("stroke","#b19f7e")
-                            .style("stroke-width",2)
-                            .style("cursor","pointer")
-                            .style("opacity",0)
-        if (!this.constant) {
-          this.button_group.selectAll("rect")
-                            .on("mouseenter",(d)=>this.itemMouseEnter(d))
-                            .on("mouseleave",(d)=>this.itemMouseLeave(d))
-                            .on("click",(d)=>this.itemClicked(d))
-                              .transition().duration(500)
-                              .style("opacity",function(d){return d.opacity})
-                            }
-        else {
+    // Bind the data and create a series of rectangles
+    this.button_group.selectAll("rect")
+                      .data(entry_array)
+                      .enter()
+                      .append("rect")
+                        .attr("x",function(d){return d.position[0]})
+                        .attr("y",function(d){return d.position[1]})
+                        .attr("width",function(d){return d.size[0]})
+                        .attr("height",function(d){return d.size[1]})
+                        .style("fill",function(d){return d.color})
+                        .style("stroke","#b19f7e") // As per website schema
+                        .style("stroke-width",2)
+                        .style("cursor","pointer") // Hand cursor
+                        .style("opacity",0) // Begin as transparent
+
+    if (!this.constant) { // Iff the buttons fade in/out, bind the methods which control this behaviour, and bind the button action
+      this.button_group.selectAll("rect")
+                        .on("mouseenter",(d)=>this.itemMouseEnter(d))
+                        .on("mouseleave",(d)=>this.itemMouseLeave(d))
+                        .on("click",(d)=>this.itemClicked(d))
+                          .transition().duration(500)
+                          .style("opacity",function(d){return d.opacity})
+                        }
+    else { // If the buttons are static, set them to be opaque and bind the behaviour
           this.button_group.selectAll("rect").style("opacity",1)
                             .on("click",(d)=>this.itemClicked(d))
         }
+
+    // Bind the data and create a series of text elements to label the buttons
+    this.button_group.selectAll("text")
+                      .data(entry_array)
+                      .enter()
+                      .append("text")
+                        .text(function(d){return d.name})
+                        .attr("x",function(d){return d.position[0] + 0.5*d.size[0]})
+                        .attr("y",function(d){return d.position[1] + 0.5*d.size[1] + 8})
+                        .attr("font-family","Arial")
+                        .attr("font-weight","bold")
+                        .style("opacity",0) // Start transparent
+                        .attr("font-size", "16px")
+                        .style("text-anchor","middle")
+                        .style("cursor","pointer") // Hand curson
+                        .style("fill","#0c448b") // As per website schema
+                        .on("click",(d)=>this.itemClicked(d))
+
+    if (!this.constant) { // If the text should fade in/out, bind the methods which control this behaviour
         this.button_group.selectAll("text")
-                          .data(entry_array)
-                          .enter()
-                          .append("text")
-                            .text(function(d){return d.name})
-                            .attr("x",function(d){return d.position[0] + 0.5*d.size[0]})
-                            .attr("y",function(d){return d.position[1] + 0.5*d.size[1] + 8})
-                            //.attr("class","h3")
-                            .attr("font-family","Arial")
-                            .attr("font-weight","bold")
-                            .style("opacity",0)
-                            .attr("font-size", "16px")
-                            .style("text-anchor","middle")
-                            .style("cursor","pointer")
-                            .style("fill","#0c448b")
-                            .on("click",(d)=>this.itemClicked(d))
-        if (!this.constant) {
-                              this.button_group.selectAll("text")
-                                                .on("mouseenter",(d)=>this.itemMouseEnter(d))
-                                                .on("mouseleave",(d)=>this.itemMouseLeave(d))
-                                                  .transition().duration(500)
-                                                  .style("opacity",function(d){return d.opacity})
-                                                }
-        else {
-                              this.button_group.selectAll("text").style("opacity",1)
-                            }
-                            //.on("click",()=>d.inputFunction())
-                            // .on("mouseenter",(d)=>this.itemMouseEnter(d))
-                            // .on("mouseleave",(d)=>this.itemMouseLeave(d))
-                            // .style("opacity",0)
-                            // .on("click",(d)=>this.itemClicked(d))
-                            //   .transition().duration(1000)
-                            //   .style("opacity",function(d){return d.opacity})
-        this.move();
+                            .on("mouseenter",(d)=>this.itemMouseEnter(d))
+                            .on("mouseleave",(d)=>this.itemMouseLeave(d))
+                            .transition().duration(500)
+                                .style("opacity",function(d){return d.opacity})
+        }
+    else { // If the buttons are static, make the text opaque
+            this.button_group.selectAll("text").style("opacity",1)
+          }
+
+    this.move(); // Raises the button to the top of the plot to avoid being obscured
   }
   redraw() {
     var x_start = this.position[0]
@@ -391,6 +329,7 @@ class ButtonArray {
                             .transition().duration(200)
                             .style("opacity",function(d){return d.opacity})
   }
+
   itemMouseEnter(data) {
     data.opacity = 1
     this.redraw()
@@ -524,9 +463,9 @@ class CombinedStaticDynamicPlot extends Container {
         console.log("Color axes created")
       }
     addLegend() {
-    this.legend = new Legend(this.controlPanel.content,this)
+    this.legend = new Legend(this.controlPanel.content)
       this.colorAxis.domain().forEach((item, i) => {
-        this.legend.addEntry(new LegendEntry(item,"circle",this.colorAxis(item)))
+        this.legend.addEntry(new LegendEntry(item,this.colorAxis(item)))
       });
 
       this.legend.dimensions.margins.top = this.controlPanelButtons.entries["Image"].position[1]+10;
