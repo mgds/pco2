@@ -60,7 +60,7 @@ The input file should be JSON file containing an array of objects each with the 
 ### Archive + Product
 | Property | Description | Type | Reason | Notes  
 | --- | --- | --- | --- | --- |
-| `proxy` | Name of the proxy being used | `categorical text` | Color of data in age-CO<sub>2</sub> plot, Filtering of age-CO<sub>2</sub> plot | Must be one of: _Phytoplankton_, _Boron isotopes_, _Stomatal Frequencies_, _Leaf Gas Exchange_, _Liverworts_, _Leaf Carbon Isotopes_, _Paleosols_, _Nahcolite/Trona_ |
+| `proxy` | Name of the proxy being used | `categorical text` | Color of data in age-CO<sub>2</sub> plot, Filtering of age-CO<sub>2</sub> plot | Must be one of: _Phytoplankton_, _Boron Proxies_, _Stomatal Frequencies_, _Leaf Gas Exchange_, _Liverwort_, _Leaf Carbon Isotopes_, _Paleosols_, _Nahcolite/Trona_ |
 | `age_ka` | Age of the datapoint in kiloyears | `float` | X axis of age-CO<sub>2</sub> plot |  |
 | `age_uncertainty_pos_ka` | Older uncertainty of the age of the datapoint in kiloyears | `float` | X axis of age-CO<sub>2</sub> plot |  |
 | `age_uncertainty_neg_ka` | Younger uncertainty of the age of the datapoint in kiloyears | `float` | X axis of age-CO<sub>2</sub> plot |  |
@@ -68,7 +68,7 @@ The input file should be JSON file containing an array of objects each with the 
 | `co2_uncertainty_pos_ppm` | Upper uncertainty of atmospheric CO<sub>2</sub> of the datapoint in ppm | `float` | Y axis of age-CO<sub>2</sub> plot |  |
 | `co2_uncertainty_neg_ppm` | Lower uncertainty of atmospheric CO<sub>2</sub> of the datapoint in ppm | `float` | Y axis of age-CO<sub>2</sub> plot |  |
 | `reference` | Citation of the publication of the datapoint | `formatted text` | Export of references, Key of archive-product version plot |  |
-| `DOI` | Digital Object Identifier for the publication of the datapoint | `formatted text` | Link in archive-product version plot | Should start with http://dx.doi.org/ for valid link generation |
+| `DOI` | Digital Object Identifier for the publication of the datapoint | `formatted text` | Link in archive-product version plot |  |
 
 
 ### Product Only
