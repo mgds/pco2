@@ -1,0 +1,36 @@
+@plot_color: #396aa8;
+@plot_color_inactive: #b4cae5;
+
+#container_svg {
+  .legendElement {
+    font: bold 11px Oswald, "Helvetica Neue", Helvetica, Arial;
+    fill: @plot_color;
+    cursor: pointer;
+    &.legendElementInactive {
+      fill: @plot_color_inactive;
+    }
+  }
+  .axis {
+    text {
+      font-size:5pt;
+      font-weight:bold;
+      fill: @plot_color;
+    }
+    line, .domain {
+      stroke: @plot_color;
+    }
+  }
+  .label_text {
+    text-anchor: middle;
+    font: bold 6pt sans-serif;
+    fill: @plot_color;
+    .sub {
+      baseline-shift: sub;
+      font-size: 0.7em;
+    }
+  }
+  .uncertainties {
+    stroke: gray;
+    stroke-width: 1px;
+  }
+}

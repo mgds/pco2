@@ -3,7 +3,7 @@ To change this license header, choose License Headers in Project Properties.
 To change this template file, choose Tools | Templates
 and open the template in the editor.
 */
-/* 
+/*
     Created on : Apr 28, 2017, 3:46:26 PM
     Author     : johnjon
 */
@@ -28,7 +28,7 @@ and open the template in the editor.
     height:100%;
     position:fixed;
     top:0;
-    left:0;  
+    left:0;
 }
 
 .container {
@@ -118,7 +118,7 @@ body,html {
             color: #ccc;
             margin-top: @grid-gutter-width / 2;
         }
-        
+
     }
     .form-control {
         background-color: rgba(255,255,255,0.25);
@@ -126,9 +126,9 @@ body,html {
         &::placeholder {
             color: #ccc;
         }
-        
+
     }
-    
+
 }
 
 .browsebuttondiv {
@@ -184,7 +184,7 @@ body,html {
 }
 
 .pco2mask {
-   
+
     background-color: @body-bg;
     color:black;
     z-index: 1000;
@@ -237,7 +237,7 @@ body,html {
   display: flex;
   flex-wrap: wrap;
   -webkit-flex-wrap: wrap;
-  
+
 }
 
 .row-zero-margin {
@@ -261,13 +261,13 @@ body,html {
     &:hover {
         background-color:rgba(160,160,160,.75);
     }
-    
+
     .searchresultimg {
         width: 100%;
         border-radius: 4px;
         .pco2-box-shadow(3px 3px 4px 0px rgba(0,0,0,0.5));
     }
-    
+
     .searchresulttitle {
         font-size:18px;
         line-height:1.2em;
@@ -277,7 +277,7 @@ body,html {
         text-shadow: 3px 3px 2px rgba(0,0,0,0.5);
         word-wrap: break-word;
     }
-    
+
     .searchresultannotations {
         font-size:15px;
         line-height:1.2em;
@@ -297,7 +297,7 @@ body,html {
 /*View page*/
 #playerandcontrols {
     .pco2-view-box;
-    
+
     #playerwrap {
         position: relative;
     }
@@ -305,7 +305,7 @@ body,html {
         .pco2-box-shadow(3px 3px 4px 0px rgba(0,0,0,0.5));
         background-color: black;
     }
-    
+
     #txt {
         position:absolute;
         top: 4px;
@@ -317,7 +317,7 @@ body,html {
         border-radius: 5px;
         opacity: .75;
     }
-    
+
     #videotitle {
         font-size: 1.3em;
         text-shadow: 3px 3px 2px rgba(0,0,0,0.5);
@@ -338,7 +338,7 @@ body,html {
             font-size: 1.3em;
         }
     }
-    
+
     .skipbutton, .playpause {
         display: inline-block;
         vertical-align: top;
@@ -418,7 +418,7 @@ body,html {
             overflow-y: auto;
             height: 100%;
             border-top: 1px solid @table-border-color;
-            
+
             table {
                 width: 100%;
                 overflow-x: hidden;
@@ -464,11 +464,11 @@ body,html {
 .index-footer {
   position: absolute;
   bottom: 0px;
-  left: 0px; 
+  left: 0px;
   width:100%;
-  text-align: center;    
+  text-align: center;
   background-color: @brand-primary;
-  border-color: #15263e; 
+  border-color: #15263e;
   color: #fff;
   padding: 15px 0px;
   line-height:24px;
@@ -568,3 +568,4 @@ a.proxylistitem {
         }
     }
 }
+@import "plotStyle.less";
