@@ -1,13 +1,88 @@
 @plot_color: #396aa8;
 @plot_color_inactive: #b4cae5;
+@plot_color_phytoplankton: #890903;
+@plot_color_boron: #CC5304;
+@plot_color_stomatal: #D38F08;
+@plot_color_leafgas: #3B9001;
+@plot_color_liverworts: #028492;
+@plot_color_c3plants: #394B9F;
+@plot_color_paleosols: #7424A7;
+@plot_color_nahcolite: #3D0F5A;
 
+.tooltip {
+  position: absolute;
+  padding: 4px;
+  font: bold 12px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  background: #444;
+  color: white;
+  border: 0px;
+  border-radius: 4px;
+  pointer-events: none;
+}
 #container_svg {
-  .legendElement {
-    font: bold 11px Oswald, "Helvetica Neue", Helvetica, Arial;
-    fill: @plot_color;
+  .background {
+    fill: white;
+  }
+  .button_group {
     cursor: pointer;
-    &.legendElementInactive {
-      fill: @plot_color_inactive;
+    overflow: overlay;
+    rect {
+      stroke:gray; // As per website schema
+      stroke-width:2;
+      cursor:pointer; // Hand cursor
+      fill: #ddd;
+    }
+    text {
+      font: 12px Oswald, "Helvetica Neue", Helvetica, Arial;
+      fill: @plot_color;
+    }
+  }
+  .dynamic_plot{
+    &.zoomed:hover .zoom_button {
+      opacity: 0.5;
+      &:hover {
+        opacity: 1;
+      }
+    }
+    .zoom_button {
+      cursor: pointer;
+      overflow: overlay;
+      opacity: 0;
+      rect {
+        stroke:gray; // As per website schema
+        stroke-width:2;
+        cursor:pointer; // Hand cursor
+        fill: #ddd;
+      }
+      text {
+        font: 900 12px "Font Awesome 5 Free";
+        fill: @plot_color;
+      }
+    }
+  }
+
+  .selection {
+    fill: #ddd;
+    stroke: gray;
+    fill-opacity: 0.3;
+    stroke-opacity: 0.7;
+    stroke-width: 1;
+  }
+  #legend_container {
+    text {
+      font: bold 11px Oswald, "Helvetica Neue", Helvetica, Arial;
+      cursor: pointer;
+      fill: @plot_color;
+      &.inactive {
+        fill: @plot_color_inactive;
+      }
+    }
+    circle {
+      cursor: pointer;
+      opacity: 1;
+      &.inactive {
+        opacity: 0.3;
+      }
     }
   }
   .axis {
@@ -29,8 +104,23 @@
       font-size: 0.7em;
     }
   }
-  .uncertainties {
-    stroke: gray;
-    stroke-width: 1px;
+  .all_points {
+    .inactive {
+      opacity: 0;
+    }
+    line {
+      stroke: gray;
+      stroke-width: 0.8px;
+    }
+  }
+  circle {
+    &.phytoplankton {fill:@plot_color_phytoplankton}
+    &.boron {fill:@plot_color_boron}
+    &.stomatal {fill:@plot_color_stomatal}
+    &.leafgas {fill:@plot_color_leafgas}
+    &.liverworts {fill:@plot_color_liverworts}
+    &.c3plants {fill:@plot_color_c3plants}
+    &.paleosols {fill:@plot_color_paleosols}
+    &.nahcolite {fill:@plot_color_nahcolite}
   }
 }
