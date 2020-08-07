@@ -1,6 +1,6 @@
 [{"name":"Holocene","x1":0,"x2":12,"color2":"#fef2e3","color":"#ff4400"},
 {"name":"Pleistocene","x1":12,"x2":2580,"color":"#fff0bd"},
-{"name":"Pliocene","x1":2580,"x2":5333,"color":"#fff9ae"},
+{"name":"Pliocene","x1":2580,"x2":5333,"color":"#fff093"},
 {"name":"Miocene","x1":5333,"x2":23030,"color":"#fff200"},
 {"name":"Oligocene","x1":23030,"x2":33900,"color":"#fedbab"},
 {"name":"Eocene","x1":33900,"x2":56000,"color":"#fcbc86"},

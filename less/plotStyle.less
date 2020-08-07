@@ -33,13 +33,23 @@
       fill: #ddd;
     }
     text {
-      font: 12px Oswald, "Helvetica Neue", Helvetica, Arial;
+      font: 12px Oswald, "Helvetica Neue", Helvetica, Arial, sans-serif;
       fill: @plot_color;
     }
   }
   .dynamic_plot{
+    .hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .reference {
+      text-decoration: none;
+      font: 6px sans-serif;
+      fill: @plot_color;
+      opacity: 0.6;
+    }
     &.zoomed:hover .zoom_button {
-      opacity: 0.5;
+      opacity: 0.8;
       &:hover {
         opacity: 1;
       }
@@ -59,6 +69,22 @@
         fill: @plot_color;
       }
     }
+    &:hover {
+      .exp_button {
+        opacity: 0.8;
+      }
+      .reference {
+        opacity: 1;
+      }
+    }
+    .exp_button {
+      cursor: pointer;
+      opacity: 0;
+      text {
+        font: 900 10px "Font Awesome 5 Free";
+        fill: @plot_color;
+      }
+    }
   }
 
   .selection {
@@ -69,20 +95,16 @@
     stroke-width: 1;
   }
   #legend_container {
-    text {
-      font: bold 11px Oswald, "Helvetica Neue", Helvetica, Arial;
-      cursor: pointer;
-      fill: @plot_color;
-      &.inactive {
-        fill: @plot_color_inactive;
-      }
-    }
-    circle {
+    .legend_row {
       cursor: pointer;
       opacity: 1;
       &.inactive {
         opacity: 0.3;
       }
+    }
+    text {
+      font: bold 11px Oswald, "Helvetica Neue", Helvetica, Arial;
+      fill: @plot_color;
     }
   }
   .axis {
@@ -97,7 +119,7 @@
   }
   .label_text {
     text-anchor: middle;
-    font: bold 6pt sans-serif;
+    font: bold 8px sans-serif;
     fill: @plot_color;
     .sub {
       baseline-shift: sub;
@@ -105,12 +127,23 @@
     }
   }
   .all_points {
-    .inactive {
+    .hidden {
       opacity: 0;
     }
     line {
       stroke: gray;
       stroke-width: 0.8px;
+    }
+  }
+  .timelineg {
+    .tlrect {
+      stroke: gray;
+      stroke-width: 0.7px;
+    }
+    .tltext {
+      font-size: 6px;
+      font-family: sans-serif;
+      pointer-events: none;
     }
   }
   circle {

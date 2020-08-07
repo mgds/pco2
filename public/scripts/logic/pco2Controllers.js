@@ -21,6 +21,7 @@ pco2Controllers.run(function($rootScope){
 
 pco2Controllers.controller('indexView',['$scope','$timeout',function($scope,$timeout) {
     $timeout(function(){ $(".centralcontent").hide().fadeIn(500); }, 500);
+    ageCO2Plot = new PCO2Plot("#age_co2_plot");
 }]);
 
 pco2Controllers.controller('aboutView',['$scope','$timeout','$window',function($scope,$timeout,$window) {
@@ -35,7 +36,6 @@ pco2Controllers.controller('faqsView',['$scope','$timeout','$window','apiConfig'
       $('.collapsible').click(function(e){
         e.preventDefault();
         var target_element= $(this).attr("data-target");
-        console.log(target_element);
         $(target_element).toggleClass('collapse1');
         $(this).find(".glyphicon").toggleClass('glyphicon-menu-down').toggleClass('glyphicon-menu-right');
         return false;

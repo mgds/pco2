@@ -1,1005 +1,270 @@
-class Container { // A generic class to contain any content, used to derive more specific classes
-    constructor(parent,name) { // Requires a parent div, and a name for an id, automatically sets dimensions
-        this.parent = parent
-        this.dimensions = new Dimensions()
-        this.content = this.parent.append("g")
-                                        .attr("transform","translate("+this.dimensions.margins.left+","+this.dimensions.margins.top+")")
-                                        .attr("width",this.dimensions.width)
-                                        .attr("height",this.dimensions.height)
-                                         .attr("id",name)
+class PCO2Plot { // Overall container class for plots
+
+    plot_file = "data/Paleo-CO2_Plot.json"
+    archive_file = "data/Paleo-CO2_Archive.json"
+    temp_file = "data/temp.json"
+    temp_modern_file = "data/tempModern.json"
+    iceCore_file = "data/co2bereiter.json"
+    maunaLoa_file = "data/co2MaunaLoa.json"
+    timeline_file = "data/geologicTime.json"
+    class_axis = {
+      "Phytoplankton":"phytoplankton",
+      "Boron Proxies":"boron",
+      "Stomatal Frequencies":"stomatal",
+      "Leaf Gas Exchange":"leafgas",
+      "Liverworts":"liverworts",
+      "C3 Plants":"c3plants",
+      "Paleosols":"paleosols",
+      "Nahcolite":"nahcolite"
     }
-}
+    //PLOT DOMAINS
+    domains = new DomainControl([
+      [[70000,0],[0,5500]], //pco2 plot units kiloAnnum and ppm
+      [[800,0],[5,30]] //temperature plot 2 units kiloAnnum and degC (other plots based on these dimensions)
+    ]);
+    //External and inter-plot spacing in pixels
+    padding = 8;
+    //Label spacing in pixels
+    lbl = {"xAxisH":20,"yAxisW":25,"font":8};
+    //Plot sizes in pixels
+    plotDims = [
+      [267,150], //pco2 plot 16:9 aspect
+      [100,75], //temperature plot 2 Other plots based on these dims
+      [130,10] //row0width and timelineHeight
+    ];
 
-class Dimensions { // A generic class to define the dimensions of something (e.g. width/height/aspect ratio/margin size)
-  constructor() { // Assume default values are Null and margins are 0
-    this.width = null
-    this.height = null
-
-    this.aspectRatio = null
-
-    this.margins = {top:0,bottom:0,left:0,right:0}
-  }
-
-  // Setter methods
-  setHeight(height) {
-     this.height = height
-  }
-  setWidth(width) {
-      this.width = width
-  }
-  setAspectRatio(aspectRatio) {
-      this.aspectRatio = aspectRatio
-  }
-  setMargins(marginObject) {
-      this.margins.top = marginObject.top
-      this.margins.bottom = marginObject.bottom
-      this.margins.left = marginObject.left
-      this.margins.right = marginObject.right
-  }
-}
-
-class Legend extends Container { // A class for the legend, which inherits a container structure
-  constructor(container) {
-      super(container,"legend"); // Run the superclass constructor
-      this.entries = {} // These are the individual elements which make up the legend
-      this.spacing = 14 // Manually defined
-      this.hide = false // Defines whether to hide unused entries
-  }
-
-  // Addition methods
-  addEntry(entry) { // Adds a new individual entry to the set
-    name = entry.name
-    this.entries[name] = (entry)
-  }
-
-  // Display methods
-  draw() { // Creates the elements of the legend
-    var x_start = this.dimensions.margins.left
-    var y_start = this.dimensions.margins.top
-    var i = 0
-
-    // Create a containing group
-    this.legend_group = this.content.append("g")
-                                      .attr("transform","translate("+x_start+","+y_start+")")
-
-    // Calculate the position of each entry
-    var entry_array = []
-    for (var name in this.entries) {
-        var item = this.entries[name]
-        entry_array.push(item)
-        item.position = [0,y_start+(i*this.spacing)]
-        i++
-      }
-
-    // Bind the data and create a series of circles
-    this.legend_group.selectAll("circle")
-                      .data(entry_array)
-                      .enter()
-                      .append("circle")
-                        .attr("cx",function(d){return d.position[0]})
-                        .attr("cy",function(d){return d.position[1]})
-                        .attr("r",3) // Manually defined radius
-                        .style("fill",function(d){return d.color})
-                        .on("click",(d)=>this.itemClicked(d))
-    // Create a series of text elements for legend labels
-    this.legend_group.selectAll("text")
-                      .data(entry_array)
-                      .enter()
-                      .append("text")
-                        .text(function(d){return d.name})
-                        .attr("x",function(d){return d.position[0]+8})
-                        .attr("y",function(d){return d.position[1]+5})
-                        .attr("font-size", "11px") // Manually defined
-                        .attr("font-family","Arial")
-                        .attr("font-weight","bold")
-                        .on("click",(d)=>this.itemClicked(d))
-                        .attr("fill","#396aa8") // To match website schema
-  }
-  redraw() { // Redraws the legend taking into account any changes made
-    var x_start = this.dimensions.margins.left
-    var y_start = this.dimensions.margins.top
-    var i = 0
-
-    // Calculate the position of legend entries, this time taking account of any hidden entries
-    var entry_array = []
-    for (var name in this.entries) {
-      var item = this.entries[name]
-      if (!this.hide) {
-        entry_array.push(item)
-        item.position = [0,y_start+(i*this.spacing)]
-        i++
-      }
-      else {
-        if (item.draw) {
-          entry_array.push(item)
-          item.position = [0,y_start+(i*this.spacing)]
-          i++
-          }
-        }
-      }
-
-    // Bind the data to a varial
-    var legend_circles = this.legend_group.selectAll("circle")
-                      .data(entry_array)
-
-
-    legend_circles.exit().remove() // Remove unncecessary markers
-    legend_circles.enter().append("circle") // Create new markers if necessary
-                            .merge(legend_circles)
-                                .attr("cx",function(d){return d.position[0]})
-                                .attr("cy",function(d){return d.position[1]})
-                                .attr("r",3) // Manually defined radius
-                                .style("fill",function(d){return d.color})
-                                .style("opacity",function(d){
-                                  if (d.draw) {return 1}
-                                  else {return 0.3}
-                                })
-                                .on("click",(d)=>this.itemClicked(d))
-
-    // For those markers which have not been destroyed or created
-    legend_circles.attr("cx",function(d){return d.position[0]})
-                    .attr("cy",function(d){return d.position[1]})
-                    .style("fill",function(d){return d.color})
-                    .style("opacity",function(d){
-                      if (d.draw) {return 1}
-                      else {return 0.3}
-                    })
-                    .on("click",(d)=>this.itemClicked(d))
-
-    // Bind the data to a variable
-    var legend_text = this.legend_group.selectAll("text")
-                          .data(entry_array)
-
-    legend_text.exit().remove() // Remove unncecessary text entries
-    legend_text.enter().append("text") // Add any new entries as required
-        .text(function(d){return d.name})
-        .attr("x",function(d){return d.position[0]+8})
-        .attr("y",function(d){return d.position[1]+5})
-        .attr("font-size", "11px") // Manually set
-        .attr("font-family","Arial")
-        .attr("font-weight","bold")
-        .style("fill",function(d){
-            if (d.draw) {return "#396aa8"} // Full color
-            else {return "#b4cae5"} // Greyed out
-        })
-        .on("click",(d)=>this.itemClicked(d))
-
-      // For the legend text entries that are not created or destroyed
-      legend_text.text(function(d){return d.name})
-        .attr("x",function(d){return d.position[0]+8})
-        .attr("y",function(d){return d.position[1]+5})
-        .attr("font-size", "11px")
-        .attr("font-family","Arial")
-        .attr("font-weight","bold")
-        .style("fill",function(d){
-            if (d.draw) {return "#396aa8"} // Full color
-            else {return "#b4cae5"} // Greyed out
-        })
-        .on("click",(d)=>this.itemClicked(d))
-  }
-
-  itemClicked(item) {
-      item.drawFlip(); // Changes the draw flag from on to off or vice versa
-      this.redraw(); // Redraws the entire legend
-      this.dynamicPlot.redrawPoints(); // Redraws the points with different proxies plotted
-  }
-  move() {
-    this.legend_group.raise() // Brings the legend to the top so no data/background/anything is overlapping it
-  }
-}
-class LegendEntry { // Class to hold an individual legend entry (with a marker and text and their properties)
-  constructor(name="",color="#ffffff") {
-    this.name = name
-    this.color = color
-    this.draw = true
-  }
-  drawFlip() { // Reverses the draw flag (determining whether the current entry is active)
-    this.draw = !this.draw
-  }
-}
-
-class ButtonArray { // A container for a one dimensional array of buttons
-  constructor(container,position,global,direction="horizontal") {
-    this.container = container
-    this.position = position
-    this.spacing = 10 // Manually defined
-    this.entries = {}
-    this.constant = false // True is the buttons are always shown (as opposed to sometimes hidden)
-    this.global = global // ???
-    this.direction = direction // Horizontal/vertical
-
-    var x_start = this.position[0]
-    var y_start = this.position[1]
-
-    // Create a group for the buttons to reside in
-    this.button_group = this.container.append("g")
-                                          .attr("id","control_buttons")
-                                          .attr("transform","translate("+x_start+","+y_start+")")
-  }
-
-  // Addition methods
-  addEntry(entry) { // Adds an indiviaul button to the array
-    name = entry.name
-    this.entries[name] = entry
-  }
-
-  draw() { // Creates the necessary elements to draw the buttons
-    var x_start = this.position[0]
-    var y_start = this.position[1]
-    var i = 0
-
-    // Calculate the position of each button by iterating from the first one
-    var entry_array = []
-    for (var name in this.entries) {
-        var item = this.entries[name]
-        entry_array.push(item)
-        if (this.direction=="horizontal") {
-          item.position = [0+(i*(item.size[0]+this.spacing)),y_start]
-        }
-        else {
-          item.position = [0,y_start+(i*(item.size[1]+this.spacing))]
-        }
-        i++
-      }
-
-    // Bind the data and create a series of rectangles
-    this.button_group.selectAll("rect")
-                      .data(entry_array)
-                      .enter()
-                      .append("rect")
-                        .attr("x",function(d){return d.position[0]})
-                        .attr("y",function(d){return d.position[1]})
-                        .attr("width",function(d){return d.size[0]})
-                        .attr("height",function(d){return d.size[1]})
-                        .style("fill",function(d){return d.color})
-                        .style("stroke","#b19f7e") // As per website schema
-                        .style("stroke-width",2)
-                        .style("cursor","pointer") // Hand cursor
-                        .style("opacity",0) // Begin as transparent
-
-    if (!this.constant) { // Iff the buttons fade in/out, bind the methods which control this behaviour, and bind the button action
-      this.button_group.selectAll("rect")
-                        .on("mouseenter",(d)=>this.itemMouseEnter(d))
-                        .on("mouseleave",(d)=>this.itemMouseLeave(d))
-                        .on("click",(d)=>this.itemClicked(d))
-                          .transition().duration(500)
-                          .style("opacity",function(d){return d.opacity})
-                        }
-    else { // If the buttons are static, set them to be opaque and bind the behaviour
-          this.button_group.selectAll("rect").style("opacity",1)
-                            .on("click",(d)=>this.itemClicked(d))
-        }
-
-    // Bind the data and create a series of text elements to label the buttons
-    this.button_group.selectAll("text")
-                      .data(entry_array)
-                      .enter()
-                      .append("text")
-                        .text(function(d){return d.name})
-                        .attr("x",function(d){return d.position[0] + 0.5*d.size[0]})
-                        .attr("y",function(d){return d.position[1] + 0.5*d.size[1] + 8})
-                        .attr("font-family","Arial")
-                        .attr("font-weight","bold")
-                        .style("opacity",0) // Start transparent
-                        .attr("font-size", "16px")
-                        .style("text-anchor","middle")
-                        .style("cursor","pointer") // Hand curson
-                        .style("fill","#0c448b") // As per website schema
-                        .on("click",(d)=>this.itemClicked(d))
-
-    if (!this.constant) { // If the text should fade in/out, bind the methods which control this behaviour
-        this.button_group.selectAll("text")
-                            .on("mouseenter",(d)=>this.itemMouseEnter(d))
-                            .on("mouseleave",(d)=>this.itemMouseLeave(d))
-                            .transition().duration(500)
-                                .style("opacity",function(d){return d.opacity})
-        }
-    else { // If the buttons are static, make the text opaque
-            this.button_group.selectAll("text").style("opacity",1)
-          }
-
-    this.move(); // Raises the button to the top of the plot to avoid being obscured
-  }
-  redraw() {
-    var x_start = this.position[0]
-    var y_start = this.position[1]
-    var i = 0
-
-    var entry_array = []
-
-    for (var name in this.entries) {
-        var item = this.entries[name]
-        entry_array.push(item)
-        if (this.direction=="horizontal") {
-          item.position = [0+(i*(item.size[0]+this.spacing)),y_start]
-        }
-        else {
-          item.position = [0,y_start+(i*(item.size[1]+this.spacing))]
-        }
-        i++
-      }
-
-        this.button_group.selectAll("rect")
-                          .data(entry_array)
-                            .transition().duration(200)
-                            .style("opacity",function(d){return d.opacity})
-                            //.on("click",(d)=>this.itemClicked(d))
-        this.button_group.selectAll("text")
-                          .data(entry_array)
-                            .transition().duration(200)
-                            .style("opacity",function(d){return d.opacity})
-  }
-
-  itemMouseEnter(data) {
-    data.opacity = 1
-    this.redraw()
-    console.log("Mouse enter")
-  }
-  itemMouseLeave(data) {
-    data.opacity = 0.3
-    this.redraw()
-  }
-  itemClicked(item) {
-    item.run(this.global)
-  }
-  move() {
-    this.button_group.raise()
-  }
-}
-class ButtonEntry {
-  constructor(name,inputFunction,size=[80,30],color="#e5decf") {
-    this.name = name
-    this.inputFunction = inputFunction
-    this.size = size
-    this.color = color
-    this.opacity = 0.3
-  }
-  run(container) {
-    return this.inputFunction(container)
-  }
-}
-
-class CombinedStaticDynamicPlot extends Container {
-    constructor(container,aspectRatio) {
-        super(container);
-
-        this.aspectRatio = aspectRatio;
-        this.makeColorAxis();
-
-        //this.containerDiv = d3.select("#age_co2_plot");
-        this.beginPlot();
-
-        this.staticPlot = new StaticPlot(this.outerSvg,1000/631,this.dimensions);
-        this.dynamicPlot = new DynamicPlot(this.outerSvg,this.staticPlot.dimensions,this.colorAxis);
-        //this.dynamicPlot.content.on("mouseleave",()=>this.hiderMouseOut())
-
-        this.controlPanel = new Container(this.outerSvg,"control_panel");
-        this.controlPanel.dimensions.width = this.staticPlot.dimensions.margins.left
-        this.controlPanel.dimensions.height = this.dimensions.height
-        this.addControlsContent();
-
-        this.addLegend();
-
-        this.linkContainers();
+    constructor(container_id) {
+      var self = this;
+      this.setAllDimensions(); //sets domains, width, height, plotDims
+      this.content = d3.select(container_id);
+      this.container = this.content.append("svg")
+          .attr("id","container_svg")
+          .attr("viewBox",`0 0 ${this.width} ${this.height}`);
+      this.container.append("rect").classed("background",true)
+          .attr("width",this.width).attr("height",this.height);
+      this.setSizeDynamic(); //sets size of plot
+      //listens for window resize and updates svg width/height
+      window.addEventListener('resize', function(){ self.setSizeDynamic(); });
+      this.generatePlot();
     }
-
-    beginPlot() {
-        this.setDimensions()
-        this.makeSvg()
-        this.makeBackground()
-    }
-    setDimensions(aspectRatio) {
-        this.dimensions = new Dimensions();
-        this.dimensions.aspectRatio = this.aspectRatio
-        this.dimensions.width = 550;
-        this.dimensions.height =this.dimensions.width/this.dimensions.aspectRatio
-    }
-    makeSvg() {
-       var elementExists = document.getElementById("plot_svg");
-       if (elementExists==null) {
-           }
-       else {
-         d3.select("#plot_svg").remove();
-       }
-
-       this.outerSvg = this.content.append("svg")
-                                              .attr("id","plot_svg")
-                                              .attr("width",this.dimensions.width)
-                                              .attr("height",this.dimensions.height)
-        }
-    makeBackground() {
-        this.background = this.outerSvg.append("rect")
-                                            .attr("width",this.dimensions.width)
-                                            .attr("height",this.dimensions.height)
-                                            .attr("fill","white")
-          }
-    addControlsContent() {
-        var button_width = 100
-        var button_height = 30
-
-        this.controlPanelButtons = new ButtonArray(this.controlPanel.content,[10,5],this)
-        this.controlPanelButtons.addEntry(new ButtonEntry("Data",this.alignAxes,[button_width,button_height]))
-        this.controlPanelButtons.addEntry(new ButtonEntry("Image",()=>{this.downloadImage();},[button_width,button_height]))
-
-        this.controlPanelButtons.constant = true
-        this.controlPanelButtons.direction = "vertical"
-
-        this.controlPanelButtons.draw()
-        //this.controlPanelButtons.button_group.selectAll("rect").on("mouseenter",()=>this.mouseLeaveEvent())
-      }
-
-    // Button functions
-    downloadImage() {
-        var svgURL = new XMLSerializer().serializeToString(document.getElementById("plot_svg"));
-        var image = new Image();
-        image.src = 'data:image/svg+xml; charset=utf8, '+encodeURIComponent(svgURL);
-
-        image.onload = function() {
-            var canvas = document.createElement("canvas");
-            canvas.width = 5*this.width;
-            canvas.height = 5*this.height;
-
-            var context = canvas.getContext("2d");
-
-            context.scale(5,5)
-            context.drawImage(this,0,0);
-
-            var dataURL = canvas.toDataURL("png");
-
-            var a = document.createElement('a');
-            a.href = dataURL;
-            a.download = "age_co2_plot.png";
-            document.body.appendChild(a)
-            a.click()
-            document.body.removeChild(a)
-        }
-    }
-
-    // Legend
-    makeColorAxis() {
-        this.colorAxis = d3.scaleOrdinal()
-                           .domain(["Algae ","Boron ","Stomata Frequency","Stomata Gas Exchange","Liverwort ","C3 ","Paleosol ","Nahcolite "])
-                           .range(["#890903","#CC5304","#D38F08","#3B9001","#028492","#394B9F","#7424A7","#3D0F5A"])
-        console.log("Color axes created")
-      }
-    addLegend() {
-    this.legend = new Legend(this.controlPanel.content)
-      this.colorAxis.domain().forEach((item, i) => {
-        this.legend.addEntry(new LegendEntry(item,this.colorAxis(item)))
-      });
-
-      this.legend.dimensions.margins.top = this.controlPanelButtons.entries["Image"].position[1]+10;
-      this.legend.dimensions.margins.left = this.controlPanelButtons.position[0];
-      this.legend.draw();
-    }
-
-    hiderMouseOut() {
-        console.log("Hider")
-        if (this.dynamicPlot.changeSize)
-        {
-            console.log("Changing size");
-            this.dynamicPlot.changeSize = false;
-            if (!this.dynamicPlot.isLarge) {
-                console.log("Small")
-                this.dynamicPlot.isLarge = true;
-
-                this.staticPlot.content.transition().duration(1000).attr("transform","translate("+(this.staticPlot.dimensions.margins.left+this.dynamicPlot.rightSide+100)+","+(this.staticPlot.dimensions.margins.top-this.dynamicPlot.topSide-50)+")");
-                this.dynamicPlot.dimensions.margins.top = 10;
-                this.dynamicPlot.content.attr("transform","translate("+this.dynamicPlot.dimensions.margins.left+","+this.dynamicPlot.dimensions.margins.top+")");
-
-                this.dynamicPlot.resizeFunction(this.dynamicPlot.rightSide,this.dynamicPlot.topSide);
-            }
-            else if (this.dynamicPlot.isLarge) {
-                this.dynamicPlot.isLarge = false;
-
-                this.dynamicPlot.dimensions.margins.top = this.dynamicPlot.topMargin;
-                this.dynamicPlot.content.attr("transform","translate("+this.dynamicPlot.dimensions.margins.left+","+this.dynamicPlot.dimensions.margins.top+")");
-
-                this.dynamicPlot.resizeFunction(-this.dynamicPlot.rightSide,-this.dynamicPlot.topSide)
-                this.staticPlot.content.transition().duration(1000).attr("transform","translate("+(this.staticPlot.dimensions.margins.left)+","+(this.staticPlot.dimensions.margins.top)+")");
-            }
-        }
-    }
-
-    linkContainers() {
-        this.dynamicPlot.legend = this.legend;
-        this.legend.dynamicPlot = this.dynamicPlot;
-        this.dynamicPlot.parent = this;
-
-        console.log("Containers linked");
-    }
-}
-class StaticPlot extends Container {
-    constructor(container,aspectRatio,containerDimensions) {
-        super(container);
-        this.setDimensions(aspectRatio,containerDimensions.height,containerDimensions.width);
-        this.makeContent();
-    }
-    setDimensions(aspectRatio,height,containerWidth) {
-        this.dimensions = new Dimensions()
-        this.dimensions.aspectRatio = aspectRatio;
-        this.dimensions.height = height;
-        this.dimensions.width = this.dimensions.height*this.dimensions.aspectRatio;
-        this.dimensions.margins.left = containerWidth-this.dimensions.width
-
-        this.content.attr("transform","translate("+this.dimensions.margins.left+","+this.dimensions.margins.top+")")
-                    .attr("width",this.dimensions.width)
-                    .attr("height",this.dimensions.height)
-    }
-    makeContent() {
-        var canvas = document.createElement("canvas");
-        canvas.width = 1030;
-        canvas.height = canvas.width*(172.656/272.214);
-        var context = canvas.getContext("2d");
-        //context.imageSmoothingEnabled = false;
-
-        var img = new Image();
-        img.src = "images/subplots.svg";
-        img.onload = ()=> {
-              context.drawImage(img,0,0);
-              this.image.attr("href",canvas.toDataURL());
-
-              this.image.attr("x",0)
-                          .attr("y",0)
-                          .attr("width",this.dimensions.width)
-          }
-        this.image = this.content.append("svg:image")
-                                      .style("opacity",1)
-        }
-}
-class DynamicPlot extends Container {
-  constructor(container,staticDimensions,colorAxis) {
-      super(container);
-
-      this.setDimensions(staticDimensions);
-
-      this.dataFile = "data/data.json";
-      this.changeSize = false;
-      this.isLarge = false;
-
-      this.colorAxis = colorAxis;
-
-      this.beginPlot()
-      this.content.on("mouseenter",()=>this.mouseEnterEvent())
-      this.content.on("mouseleave",()=>this.mouseLeaveEvent())
-  }
-
-  // Starting plot
-  beginPlot() {
-    this.makeRight()
-
-    this.makeBrush()
-    this.makeDoubleClick()
-
-    this.addData()
-    this.addOverlayButtons()
-  }
-  setDimensions(staticDimensions) {
-      this.dimensions = new Dimensions();
-
-      var svgDefaultWidth = 272.214;
-      var svgDefaultHeight = 172.656;
-
-      var widthRatio = 173.440/svgDefaultWidth;
-      var heightRatio = 99.013/svgDefaultHeight;
-
-      var leftMarginRatio = 21.367/svgDefaultWidth
-      var leftMargin = staticDimensions.margins.left+(leftMarginRatio*staticDimensions.width)
-
-      var topMarginRatio = 57.720/svgDefaultHeight
-      var topMargin = staticDimensions.margins.top+(topMarginRatio*staticDimensions.height)
-
-      this.rightSide = (64.790/svgDefaultWidth)*staticDimensions.width;
-      this.topSide = (49.702/svgDefaultHeight)*staticDimensions.height;
-      this.topMargin = topMargin;
-
-      this.dimensions.setWidth(staticDimensions.width*widthRatio);
-      this.dimensions.setHeight(staticDimensions.height*heightRatio);
-      this.dimensions.setMargins({top:topMargin,bottom:0,right:0,left:leftMargin})
-
-      this.content.attr("transform","translate("+this.dimensions.margins.left+","+this.dimensions.margins.top+")")
-                  .attr("width",this.dimensions.width)
-                  .attr("height",this.dimensions.height)
-  }
-  makeRight() {
-      this.svg = this.content.append("g")
-                                    .attr("transform","translate("+this.dimensions.margins.left+", "+this.dimensions.margins.top+")")
-                                    .attr("width",this.dimensions.width)
-                                    .attr("height",this.dimensions.height)
-                                    .call(d3.zoom())
-                                      .on("dblclick.zoom",null)
-  }
-
-  makePlot(data) {
-      this.createXAxis();
-      this.placeXAxis();
-
-      this.createYAxis();
-      this.placeYAxis();
-
+    generatePlot() {
+      var self = this;
+      //LOGO
       this.createLogo();
-      this.placeLogo();
-
-      this.drawPoints();
-      this.redrawPoints();
+      //LEGEND
+      this.legend = new Legend(this,this.dims.legend);
+      //MAIN PLOT
+      this.pco2Plot = new ScatterPlot(this,[this.plot_file],'pco2Data', this.dims.pco2Plot,this.legend); // width, height, top, left  Set the final input value to true for product, false for archive
+      this.pco2Plot.xLabelHtml = "Age (millions of years ago)";
+      this.pco2Plot.yLabelHtml = "Atmospheric CO<tspan class=\"sub\">2</tspan><tspan> (ppm)</tspan>";
+      this.pco2Plot.zoomCallback = function() {
+        this.content.classed("zoomed",this.zoomed());
+        self.timeline1.zoomX();
+        self.tempPlot1.zoomX();
+        self.iceCorePlot.zoomY();
+      }
+      this.pco2Plot.makeBrush();
+      this.pco2Plot.addData();
+      this.pco2Plot.expandButton();
+      //HANSEN TEMP PLOT to 70Ma
+      this.tempPlot1 = new LinePlot(this,[this.temp_file,this.temp_modern_file],'tempPlot1', this.dims.tempPlot1);
+      this.tempPlot1.yLabelHtml = "<tspan x=\"0\">Surface</tspan><tspan x=\"0\" dy=\"10\">Temperature (&deg;C)</tspan>";
+      this.tempPlot1.addData();
+      this.tempPlot1.content.append("g")
+        .attr("transform",`translate(6,${this.dims.tempPlot1.height-6})`)
+        .append("a").attr("class","reference").attr("target","_blank")
+        .attr("href","https://doi.org/10.1098/rsta.2012.0294")
+        .append("text")
+        .text("Hansen et al. (2013)");
+      this.timeline1 = new TimeLine(this,[this.timeline_file],'timeline1',this.dims.timeline1);
+      this.timeline1.addData();
+      //HANSEN TEMP PLOT to 800ka
+      this.tempPlot2 = new LinePlot(this,[this.temp_file,this.temp_modern_file],'tempPlot2', this.dims.tempPlot2);
+      this.tempPlot2.addData();
+      this.tempPlot2.content.append("g")
+        .attr("transform",`translate(6,${this.dims.tempPlot1.height-6})`)
+        .append("a").attr("class","reference").attr("target","_blank")
+        .attr("href","https://doi.org/10.1098/rsta.2012.0294")
+        .append("text")
+        .text("Hansen et al. (2013)");
+      this.timeline2 = new TimeLine(this,[this.timeline_file],'timeline2',this.dims.timeline2);
+      this.timeline2.addData();
+      //Bereiter CO2 PLOT to 800ka
+      this.iceCorePlot = new LinePlot(this,[this.iceCore_file,this.maunaLoa_file],'tempPlot3', this.dims.iceCorePlot);
+      this.iceCorePlot.xLabelHtml = "Age (thousands of years ago)";
+      this.iceCorePlot.addData();
+      this.iceCorePlot.content.append("g")
+        .attr("transform",`translate(6,12)`)
+        .append("a").attr("class","reference").attr("target","_blank")
+        .attr("href","https://doi.org/10.1002/2014GL061957")
+        .append("text")
+        .text("Bereiter et al. (2015)");
     }
+    showUncertainties() {
+      this.pco2Plot.showUncertainties(true);
+    }
+    hideUncertainties() {
+      this.pco2Plot.showUncertainties(false);
+    }
+    zoomRecent() {
+      var d_x = [12,0];
+      this.domains.domainX( this.tempPlot2.dimensions.d_x, d_x );
+      this.tempPlot2.zoomX();
+      this.timeline2.zoomX();
+      this.iceCorePlot.zoomX();
+    }
+    zoomOutRecent() {
+      this.domains.resetDomainX(this.tempPlot2.dimensions.d_x);
+      this.tempPlot2.zoomX();
+      this.timeline2.zoomX();
+      this.iceCorePlot.zoomX();
+    }
+    expandCallback() {
+      this.tempPlot1.content.classed('hidden',true);
+      this.tempPlot2.content.classed('hidden',true);
+      this.timeline1.content.classed('hidden',true);
+      this.timeline2.content.classed('hidden',true);
+      this.iceCorePlot.content.classed('hidden',true);
+    }
+    collapseCallback() {
+      this.tempPlot1.content.classed('hidden',false);
+      this.tempPlot2.content.classed('hidden',false);
+      this.timeline1.content.classed('hidden',false);
+      this.timeline2.content.classed('hidden',false);
+      this.iceCorePlot.content.classed('hidden',false);
+    }
+    setAllDimensions() {
 
-  // Data
-  addData() {
-    d3.json(this.dataFile).then((data)=>this.assignData(data)).then(()=>this.makePlot())
-  }
-  assignData(data) {
-    console.log("Data loaded")
-    this.data = data
-  }
-
-  createLogo() {
-      var canvas = document.createElement("canvas");
-      canvas.width = 380;
-      canvas.height = 380;
-      var context = canvas.getContext("2d");
-
-      var img = new Image();
-      img.src = "/images/logo.svg";
-      img.onload = ()=> {
+      //CALCULATED VALUES
+      var col0X = this.padding;
+      var col1X = col0X+this.plotDims[2][0]+this.lbl.yAxisW+this.lbl.font;
+      var col2X = col1X+this.plotDims[0][0]+this.padding
+      var tlY = this.padding;
+      var row1Y = tlY+this.plotDims[2][1];
+      var row2Y = row1Y+this.plotDims[1][1]+this.padding;
+      this.width = col2X+this.plotDims[1][0]+this.lbl.yAxisW+this.padding;
+      this.height = row2Y+this.plotDims[0][1]+this.lbl.xAxisH+this.padding;
+      this.dims = {
+        "pco2Plot"   : {"width":this.plotDims[0][0],"height":this.plotDims[0][1],"margins":{"left":col1X,"top":row2Y},"d_x":0,"d_y":0,
+            "axes":{"xBottom":{"format":function(d){return d/1000;}},"yLeft":{"format":d3.format("d")} }},
+        "tempPlot1"  : {"width":this.plotDims[0][0],"height":this.plotDims[1][1],"margins":{"left":col1X,"top":row1Y},"d_x":0,"d_y":1,
+            "axes":{"yLeft":{"ticks":6,"format":d3.format("d")},"yRight":{"ticks":6} }},
+        "timeline1"  : {"width":this.plotDims[0][0],"height":this.plotDims[2][1],"margins":{"left":col1X,"top":tlY  },"d_x":0,"d_y":0},
+        "tempPlot2"  : {"width":this.plotDims[1][0],"height":this.plotDims[1][1],"margins":{"left":col2X,"top":row1Y},"d_x":1,"d_y":1,
+            "axes":{"yRight":{"ticks":6,"format":d3.format("d")},"yLeft":{"ticks":6},"xBottom":{"ticks":5},"xTop":{"ticks":5} }},
+        "timeline2"  : {"width":this.plotDims[1][0],"height":this.plotDims[2][1],"margins":{"left":col2X,"top":tlY  },"d_x":1,"d_y":0},
+        "iceCorePlot": {"width":this.plotDims[1][0],"height":this.plotDims[0][1],"margins":{"left":col2X,"top":row2Y},"d_x":1,"d_y":0,
+            "axes":{"xBottom":{"format":d3.format("d"),"ticks":5},"yRight":{"format":d3.format("d")},"xTop":{"ticks":5} }},
+        "legend"     : {"width":this.plotDims[2][0],"height":this.plotDims[0][1],"margins":{"left":col0X,"top":row2Y}},
+        "logo"       : {"width":this.plotDims[2][0],"height":this.plotDims[1][1],"margins":{"left":col0X,"top":row1Y}},
+        "expanded"   : {
+          "width":this.plotDims[0][0]+this.padding+this.plotDims[1][0],
+          "height":this.plotDims[0][1]+this.padding+this.plotDims[2][1]+this.plotDims[1][1],
+          "margins":{"left":col1X,"top":tlY}}
+      };
+    }
+    setSizeDynamic() {
+      var self = this;
+      var divWidth = this.content.style('width').slice(0, -2) - 6;
+      var divHeight = Math.round(divWidth/(this.width/this.height));
+      this.container.attr("width",divWidth).attr("height",divHeight)
+    }
+    createLogo() { // Creates the logo as a data URL
+        var canvas = document.createElement("canvas");
+        canvas.width = 380; // Manually set for required resolution
+        canvas.height = 380;
+        var context = canvas.getContext("2d");
+        this.logo = this.container.append("svg:image")
+            .attr("id","logo").attr("class","plot_logo")
+            .attr("x",this.dims.logo.margins.left) // Manually determined values - tune as needed
+            .attr("y",this.dims.logo.margins.top)
+            .attr("height",this.dims.logo.height)
+        var img = new Image();
+        img.onload = ()=> {
             context.drawImage(img,0,0);
-            this.logo.attr("href",canvas.toDataURL());
+            this.logo.attr("href",canvas.toDataURL()); // Add image as data URL so that it exports properly
         }
-      this.logo = this.content.append("svg:image")
-                                    .style("opacity",0.5)
-  }
-  placeLogo() {
-      this.logo.attr("x",0.73*this.dimensions.width)
-                  .attr("y",10)
-                  .attr("width",0.25*this.dimensions.width)
-  }
-
-  boxMouseOver() {
-    console.log("Mouse over button")
-    this.button.attr("opacity",1)
-  }
-  boxMouseOut() {
-    console.log("Mouse out button")
-    this.button.attr("opacity",0.3)
-  }
-
-  // Mouse events
-  mouseEnterEvent() {
-    console.log("Mouse over plot")
-    this.buttonArray.draw()
-  }
-  mouseLeaveEvent() {
-    console.log("Mouse out plot")
-    this.buttonArray.button_group.selectAll("rect")
-                                  .transition().duration(100)
-                                  .style("opacity",0)
-                                  .remove()
-    this.buttonArray.button_group.selectAll("text")
-                                  .transition().duration(50)
-                                  .style("opacity",0)
-                                  .remove()
-  }
-
-  // Brush
-  brushFunction() {
-    var extent = d3.event.selection
-    if (!extent) return
-
-    var xExtent1 = this.x.invert(extent[0][0])
-    var yExtent1 = this.y.invert(extent[0][1])
-
-    var xExtent2 = this.x.invert(extent[1][0])
-    var yExtent2 = this.y.invert(extent[1][1])
-
-    if (yExtent1>yExtent2)
-    {
-      var y1Temp = yExtent1
-      yExtent1 = yExtent2
-      yExtent2 = y1Temp
+        img.src = "/images/logo.svg";
     }
-
-    this.brushContainer.remove();
-    this.makeBrush()
-
-    this.x.domain([xExtent1,xExtent2])
-    this.y.domain([yExtent1,yExtent2])
-
-    this.xAxis.transition().duration(1000).call(this.replacementXAxis())
-    this.yAxis.transition().duration(1000).call(this.replacementYAxis())
-
-    this.changeSize = true;
-    this.parent.hiderMouseOut();
-    this.redrawPoints();
-  }
-  makeBrush() {
-    this.brush = d3.brush()
-             .extent([[0,0],[this.dimensions.width,this.dimensions.height]])
-             .on("end",()=>this.brushFunction())
-    this.brushContainer = this.content.append("g")
-                                         .attr("class", "brush")
-                                         .call(this.brush)
-                                         .on("dblclick",()=>this.doubleClickFunction())
-     }
-  makeDoubleClick() {
-    this.clickContainer = this.content.append("g")
-                                       .attr("class","click")
-                                       .on("dblclick",()=>this.doubleClickFunction())
-  }
-  doubleClickFunction() {
-    console.log("Double click")
-    this.x.domain([70,0])
-    this.y.domain([0,5500])
-
-    this.xAxis.transition().duration(1000).call(this.replacementXAxis())
-    this.yAxis.transition().duration(1000).call(this.replacementYAxis())
-
-    if (!this.isLarge) {
-      this.changeSize = true;
+    downloadImage(format) {
+      var self = this;
+      var svg = this.container.node();
+      var copy = svg.cloneNode(true);
+      if (format === "svg") {
+        PlotUtils.copyStylesInline(copy, svg,['hidden','zoom_button','plot_logo','exp_button']);
+        var svg_URL = (new XMLSerializer()).serializeToString(copy);
+        var image_url = 'data:image/svg+xml; charset=utf8,'+encodeURIComponent("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"+svg_URL);
+        this.downloadFunction(image_url,"age_co2_plot.svg");
+      } else {
+        PlotUtils.copyStylesInline(copy, svg,["zoom_button","hidden",'exp_button']);
+        var image = new Image();
+        image.onload = function(){
+          var canvas = document.createElement("canvas");
+          canvas.width = 5*this.width; // Controls the resolution of the exported plot
+          canvas.height = 5*this.height; // Controls the resolution of the exported plot
+          var context = canvas.getContext("2d");
+          context.scale(5,5); // Downscales the plot back to regular size (i.e. draws the SVG at high resolution and then exports at a reasonable raster size)
+          context.drawImage(this,0,0);
+          self.downloadFunction(canvas.toDataURL("png"),"age_co2_plot.png");
+        }
+        image.src = 'data:image/svg+xml; charset=utf8, '+encodeURIComponent((new XMLSerializer()).serializeToString(copy));
+      }
     }
-    this.parent.hiderMouseOut();
-    this.redrawPoints();
-  }
-
-  resizeFunction(extra_width,extra_height) {
-      //this.content.transition().duration(1000).attr("transform","translate("+this.dimensions.margins.left+","+this.dimensions.margins.top+")");
-
-      var width = this.dimensions.width+extra_width;
-      var height = this.dimensions.height+extra_height;
-
-      this.x.range([0,width]);
-      this.y.range([height,0]);
-
-      this.dimensions.width = width;
-      this.dimensions.height = height;
-
-      this.brush.extent([[0,0],[width,height]])
-      this.brushContainer.call(this.brush);
-
-      this.placeXAxis();
-      this.placeYAxis();
-      this.placeLogo();
-      this.redrawPoints();
-
-      this.content.transition().duration(1000).attr("transform","translate("+this.dimensions.margins.left+","+this.dimensions.margins.top+")");
-  }
-
-  // Zooming
-  zoomFunction() {
-        console.log("Zoom function")
-        var newX = d3.event.transform.rescaleX(this.x)
-        var newY = d3.event.transform.rescaleY(this.y)
-
-        this.xAxis.call(d3.axisBottom(newX))
-        this.yAxis.call(d3.axisLeft(newY))
-
-        this.x = newX
-        this.y = newY
-
-
-        this.redrawPoints()
-  }
-
-  // Plotting
-  // Axes
-  createXAxis() {
-      this.x = d3.scaleLinear()
-            .domain([70,0])
-            .range([0,this.dimensions.width]);
-
-      this.xAxis = this.content.append("g")
-                              .classed("axis_text","true")
-                              .style("font-size","5pt")
-                              .style("font-weight","bold")
-                              //.call(d3.axisTop(this.x).tickPadding(-15))
-
-
-      this.xAxis2 = this.content.append("g")
-
-      this.xLabel = this.content.append("text")
-                                  .style("text-anchor","middle")
-                                  .text("Age (millions of years ago)")
-                                  .classed("axis_text","true")
-                                  .style("font-size","6pt")
-                                  .style("font-family","sans-serif")
-                                  .style("font-weight","bold")
-                                  .style("fill","#0c448b")
-  }
-  placeXAxis() {
-    // Add X axis
-    this.xAxis.transition().duration(1000)
-                        .attr("transform", "translate(" + 0 + "," + (this.dimensions.height) + ")")
-                        .call(d3.axisTop(this.x).tickPadding(-15))
-    this.xAxis.selectAll("line")
-                .style("stroke","#0c448b");
-    this.xAxis.selectAll(".domain")
-                .style("stroke","#0c448b");
-    this.xAxis.selectAll("text")
-                .style("fill","#0c448b");
-    this.xAxis2.transition().duration(1000).attr("transform", "translate("+(0)+","+(0)+")")
-                        .call(d3.axisBottom(this.x).tickFormat(""));
-    this.xAxis2.selectAll("line")
-                .style("stroke","#0c448b");
-    this.xAxis2.selectAll(".domain")
-                .style("stroke","#0c448b");
-
-    console.log("X axis drawn");
-
-    this.xLabel.attr("transform","translate(" + (this.dimensions.width/2) + "," + (this.dimensions.height+20) + ")")
-    console.log("X axis labelled");
-  }
-  createYAxis() {
-      // Add Y axis
-      this.y = d3.scaleLinear()
-                    .domain([0, 5500])
-                    .range([this.dimensions.height, 0]);
-
-      this.yAxis = this.content.append("g")
-                                .classed("axis_text","true")
-                                .style("font-size","5pt")
-                                .style("font-weight","bold")
-                                    //.style("fill","3333ff")
-                                    //.attr("fill","#0c448b");
-      this.yAxis2 = this.content.append("g")
-
-      this.yLabel = this.content.append("text")
-                                 .text("Atmospheric CO")
-                                 .classed("axis_text","true")
-                                 .style("font-size","6pt")
-                                 .style("font-family","sans-serif")
-                                 .style("font-weight","bold")
-                                 .style("fill","#0c448b")
-      this.yLabel.append('tspan')
-                  .text('2')
-                  .style('font-size', '0.5rem')
-                  .attr('dx','.1em')
-                  .attr('dy','.2em')
-      this.yLabel.append("tspan")
-                  .text(" (ppm)")
-                  .style("font-size","6pt")
-                  .attr('dx','0em')
-                  .attr('dy','0em')
-
-  }
-  placeYAxis() {
-      this.yAxis.transition().duration(1000).attr("transform", "translate(" + 0 + "," + 0 + ")")
-        .call(d3.axisRight(this.y).tickPadding(-26).tickFormat(d3.format("d")));
-
-        this.yAxis.selectAll("line")
-                    .style("stroke","#0c448b");
-        this.yAxis.selectAll(".domain")
-                    .style("stroke","#0c448b");
-        this.yAxis.selectAll("text")
-                    .style("fill","#0c448b");
-
-      this.yAxis2.transition().duration(1000).attr("transform","translate("+this.dimensions.width+","+0+")")
-          .call(d3.axisLeft(this.y).tickFormat(""));
-      this.yAxis2.selectAll(".domain")
-          .style("stroke","#0c448b");
-      this.yAxis2.selectAll("text")
-          .style("fill","#0c448b");
-
-      console.log("Y axis drawn");
-
-      this.yLabel.style("transform","translate(" + -25 + "px," + ((this.dimensions.height/2)+40) + "px) rotate(-90deg)")
-      console.log("Y Label added");
-  }
-  replacementXAxis() {
-      return d3.axisTop(this.x).tickPadding(-15)
-  }
-  replacementYAxis() {
-      return d3.axisRight(this.y).tickPadding(-26).tickFormat(d3.format("d"));
-  }
-
-  // Drawing
-  drawPoints() {
-    var x = this.x
-    var y = this.y
-    var colorAxis = this.colorAxis
-    this.content.append('g')
-                     .selectAll("dot")
-                     .data(this.data)
-                     .enter()
-                     .append("circle")
-                      .attr("cx", function (data) {return x(data.age/1000);} )
-                      .attr("cy", function (d) { return y(d.co2); } )
-                      .attr("r",2)
-                      .style("fill", function (data) {return colorAxis(data.method.concat(" ".concat(data.submethod)))})
-                      // .on("mouseover", function(d) {
-                      //   div.transition()
-                      //   .duration(100)
-                      //   .style("opacity", .9);
-                      // div	.html(d.firstAuthor + ", " + d.year + "</br>" + "<a href=" + d.DOI + ">DOI</a>")
-                      //   .style("left", (d3.event.pageX) + "px")
-                      //   .style("top", (d3.event.pageY - 28) + "px")
-                    // });
+    downloadFunction(url,file_name) {
+      var downloadable_element = document.createElement('a'); // Create a download element
+      downloadable_element.href = url;
+      downloadable_element.download = file_name;
+      document.body.appendChild(downloadable_element)
+      downloadable_element.click()
+      document.body.removeChild(downloadable_element)
     }
-  redrawPoints() {
-    var x = this.x
-    var y = this.y
-    var colorAxis = this.colorAxis
-    var data
-
-    legend = this.legend;
-    data = this.data.filter(function(d){
-        return (legend.entries[d.method.concat(" ".concat(d.submethod))].draw)
-    });
-
-    var smallX = x.domain()[1]
-    var bigX = x.domain()[0]
-    var smallY = y.domain()[0]
-    var bigY = y.domain()[1]
-
-    var points = this.content.selectAll("circle").data(data)
-      points.exit().remove()
-      points.enter().append("circle")
-             .merge(points)
-                 .attr("cx", function (data) {return x(data.age/1000);})
-                 .attr("cy", function (data) {return y(data.co2);})
-                 .attr("r",2)
-                 .style("opacity",0)
-                 .call(enter => enter.transition(this.content.transition().duration(500)).style("opacity", function (data) { if (data.age/1000<=bigX && data.age/1000>=smallX && data.co2<=bigY && data.co2>=smallY){return 1} else {return 0}}))
-                 .style("fill", function (data) {return colorAxis(data.method.concat(" ".concat(data.submethod)))})
-
-    this.buttonArray.move()
-  }
-
-  // Buttons
-  addOverlayButtons() {
-    this.buttonArray = new ButtonArray(this.content,[5,2],this)
-    this.buttonArray.addEntry(new ButtonEntry("Align",this.alignAxes,[60,30]))
-    this.buttonArray.addEntry(new ButtonEntry("Hide",this.hideUnusedLegend,[60,30]))
-  }
-
-  // Button functions
-  alignAxes(container) {
-    console.log("Align Axes")
-
-    var x_Limits = container.x.domain()
-    var x_Limits_clean = []
-    x_Limits.forEach((item, i)=>{if (item==0) {item=1e-9} x_Limits_clean.push(item*1e6)})
-
-    var x_order_difference = Math.ceil(Math.log10(Math.abs(x_Limits_clean[0]-x_Limits_clean[1])))
-
-    var x_rounded = []
-     x_Limits_clean.forEach((item, i)=>{
-       var rounded = Math.round(item/(Math.pow(10,x_order_difference-1)))
-       var renormalised = rounded*(Math.pow(10,x_order_difference-1))/1e6
-       x_rounded.push(renormalised)
-     })
-
-     container.x.domain(x_rounded)
-     container.xAxis.transition().duration(1000).call(container.replacementXAxis())
-
-     var y_Limits = container.y.domain()
-     var y_Limits_clean = []
-     y_Limits.forEach((item, i)=>{if (item==0) {item=1} y_Limits_clean.push(item)})
-
-     var y_order_difference = Math.ceil(Math.log10(Math.abs(y_Limits_clean[0]-y_Limits_clean[1])))
-
-     var y_rounded = []
-      y_Limits_clean.forEach((item, i)=>{
-        var rounded = Math.round(item/(Math.pow(10,y_order_difference-1)))
-        var renormalised = rounded*(Math.pow(10,y_order_difference-1))
-        y_rounded.push(renormalised)
-      })
-
-      container.y.domain(y_rounded)
-      container.yAxis.transition().duration(1000).call(container.replacementYAxis())
-
-
-     container.redrawPoints();
-
-
-    //var log_x_Limits = [Math.floor(Math.log10(x_Limits[0]*1e6)),Math.floor(Math.log10(x_Limits[1]*1e6))]
-
-    //console.log(log_x_Limits)
-
-    //console.log(this.x.domain())
-  }
-  hideUnusedLegend(global) {
-    global.legend.hide = (!global.legend.hide)
-    global.legend.redraw()
-  }
+    downloadData(format) {
+      var self = this;
+      d3.json(this.archive_file)
+        .then(function(data){
+          var d_x = self.pco2Plot.x.domain();
+          var d_y = self.pco2Plot.y.domain();
+          var entries = self.pco2Plot.legend.entries;
+          var filtered_data = data.filter(function(d){
+            return ((d.age!==null && d.co2!==null) //age and co2 values are defined
+              && ( d.age<=d_x[0] && d.age>=d_x[1] && d.co2<=d_y[1] && d.co2>=d_y[0] ) //age and co2 values are in current dynamic_plot domain
+              && entries[d.proxy].draw) //data proxy is switched on in the legend
+          });
+          self.downloadFormatted(filtered_data,format);
+        });
+    }
+    downloadFormatted(data,format){
+      if (format === 'csv') {
+        var out = [];
+        out.push(JSON.stringify(Object.keys(data[0])).replace(/(^\[)|(\]$)/mg, ''));
+        data.forEach(function(d){
+          out.push(JSON.stringify(Object.values(d)).replace(/(^\[)|(\]$)/mg, ''));
+        });
+        this.downloadFunction("data:text/csv,"+encodeURIComponent(out.join("\n")),"age_co2_plot_data.csv");
+      } else {
+        this.downloadFunction("data:text/json,"+encodeURIComponent(JSON.stringify(data,null,4)),"age_co2_plot_data.json");
+      }
+    }
 }
+var ageCO2Plot = null; //defined in the controller for the index page
 
-ageCO2Plot = new CombinedStaticDynamicPlot(d3.select("#age_co2_plot"),1200/550);
+$(document).ready(function(){
+  $(document).on('click','#showHideErrors',function(e){
+    if ($(this).hasClass("btn-info")) {
+      ageCO2Plot.showUncertainties();
+      $(this).removeClass("btn-info").text("Hide Error Bars")
+    } else {
+      ageCO2Plot.hideUncertainties();
+      $(this).addClass("btn-info").text("Show Error Bars")
+    }
+  });
+  $(document).on('click','#showHideHolocene',function(e){
+    if ($(this).hasClass("btn-info")) {
+      ageCO2Plot.zoomOutRecent();
+      $(this).removeClass("btn-info")
+    } else {
+      ageCO2Plot.zoomRecent();
+      $(this).addClass("btn-info")
+    }
+  }); //Bind button actions to the document
+});

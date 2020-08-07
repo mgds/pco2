@@ -9,10 +9,31 @@
                 This site will provide access to a compilation of proxy CO<sub>2</sub> data that is being assembled and curated by an international group of proxy experts.  Our goals are to facilitate access to these data, provide details of each proxy, explanatory animations and videos, and interactive plots that allow users to explore these important data. Please check back soon for updates!
             </p>
         </div>
-        <div class="col-md-8">
-            <div class="col-xs-12" style="background-color:#b19f7e;padding-top:20px;padding-bottom:20px;">
-              <div id="age_co2_plot" width="100%"></div>
-              <script type="text/javascript" src="scripts/logic/ageCO2Plot.js"></script>
+        <div class="col-xs-12">
+            <div class="col-xs-12 plot_box">
+              <div id="age_co2_plot"></div>
+              <form class="form-inline" id="downloadForm">
+                <div class="btn-group">
+                  <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Download Data <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a href="#" onclick="ageCO2Plot.downloadData('csv')">CSV</a></li>
+                    <li><a href="#" onclick="ageCO2Plot.downloadData('json')">JSON</a></li>
+                  </ul>
+                </div>
+                <div class="btn-group">
+                  <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Download Image <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu">
+                    <li><a href="#" onclick="ageCO2Plot.downloadImage('png')" >PNG</a></li>
+                    <li><a href="#" onclick="ageCO2Plot.downloadImage('svg')" >SVG</a></li>
+                  </ul>
+                </div>
+                <button type="button" id="showHideHolocene" class="btn btn-default btn-sm" style="float:right;margin-left:5px;">Zoom to Holocene</button>
+                <button type="button" id="showHideErrors" class="btn btn-default btn-sm"style="float:right">Hide Error Bars</button>
+              </form>
             </div>
         </div>
         </div></div>
