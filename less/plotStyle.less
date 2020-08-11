@@ -44,28 +44,53 @@
     }
     .reference {
       text-decoration: none;
-      font: 6px sans-serif;
+      font-size: 6px;
+      font-weight: 700;
+      font-family: sans-serif;
       fill: @plot_color;
       opacity: 0.6;
+      cursor: pointer;
     }
+    .zoom_label {
+      opacity: 0.8;
+      cursor: pointer;
+      text {
+        fill: #ff4400;
+        text-anchor: end;
+        text-decoration: none;
+        font-size: 6px;
+        font-weight: 700;
+        font-family: sans-serif;
+      }
+      path {
+        stroke-width: 1;
+        stroke: #ff4400;
+      }
+    }
+    &.zoomed .zoom_label {
+      opacity: 0;
+      pointer-events: none;
+    }
+
     &.zoomed:hover .zoom_button {
       opacity: 0.8;
+      pointer-events: all;
       &:hover {
         opacity: 1;
       }
     }
     .zoom_button {
       cursor: pointer;
-      overflow: overlay;
       opacity: 0;
+      pointer-events: none;
       rect {
         stroke:gray; // As per website schema
-        stroke-width:2;
+        stroke-width:0;
         cursor:pointer; // Hand cursor
         fill: #ddd;
       }
       text {
-        font: 900 12px "Font Awesome 5 Free";
+        font: 900 10px "Font Awesome 5 Free";
         fill: @plot_color;
       }
     }
@@ -103,7 +128,7 @@
       }
     }
     text {
-      font: bold 11px Oswald, "Helvetica Neue", Helvetica, Arial;
+      font: 700 10px/10px Helvetica, Arial, sans-serif;
       fill: @plot_color;
     }
   }
@@ -136,7 +161,7 @@
     }
   }
   .timelineg {
-    .tlrect {
+    .tlbackground {
       stroke: gray;
       stroke-width: 0.7px;
     }
@@ -144,6 +169,7 @@
       font-size: 6px;
       font-family: sans-serif;
       pointer-events: none;
+      font-weight: bold;
     }
   }
   circle {
