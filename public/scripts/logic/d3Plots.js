@@ -104,18 +104,15 @@ class DomainControl {
   resetDomainY(idx) {
     return this.domainY(idx,this.domains[idx][1]);
   }
-  zoomed(x_idx,y_idx) { //Current domain not equal to initial domain
-    var ix = this.initialDomainX(x_idx);
-    var x = this.domainX(x_idx);
+  zoomed(x_idx,y_idx,scaleLinear=true) { //Current domain not equal to initial domain
     var iy = this.initialDomainY(y_idx);
-    var y = this.domainY(y_idx);
+    iy[0]=scaleLinear?iy[0]:Math.max(iy[0],10);
     return (
       (JSON.stringify(this.initialDomainX(x_idx)) !== JSON.stringify(this.domainX(x_idx))) ||
       (JSON.stringify(this.initialDomainY(y_idx))!==JSON.stringify(this.domainY(y_idx)))
     );
   }
   zoomedX(x_idx) { //Current domain not equal to initial domain
-    console.log(this.initialDomainX(x_idx)[0],this.domainX(x_idx)[0],x_idx,(this.initialDomainX(x_idx) !== this.domainX(x_idx)));
     var ix = this.initialDomainX(x_idx);
     var x = this.domainX(x_idx);
     return (
@@ -137,6 +134,7 @@ class DynamicPlot { // Container class for the dynamic subplot
     this.dimensions = PlotUtils.deepCopy(this.initial_dimensions);
     this.expanded_dimensions = parent.dims.expanded;
     this.legend = legend;
+    this.linearScale = true;
     if (this.legend!==null) {
       this.legend.clickCallback = function(){self.redraw();};
     }
@@ -259,7 +257,7 @@ class DynamicPlot { // Container class for the dynamic subplot
   }
   zoom(runCallback=true) {
     this.x.domain(this.parent.domains.domainX(this.dimensions.d_x));
-    this.y.domain(this.parent.domains.domainY(this.dimensions.d_y));
+    this.y.domain(this.yDomainScaled());
     this.zoomFunction(runCallback);
   }
   zoomX(runCallback=true) {
@@ -267,17 +265,16 @@ class DynamicPlot { // Container class for the dynamic subplot
     this.zoomFunction(runCallback);
   }
   zoomY(runCallback=true) {
-    this.y.domain(this.parent.domains.domainY(this.dimensions.d_y));
+    this.y.domain(this.yDomainScaled());
     this.zoomFunction(runCallback);
   }
   zoomed() { //Current domain not equal to initial domain
-    return this.parent.domains.zoomed(this.dimensions.d_x,this.dimensions.d_y);
+    return this.parent.domains.zoomed(this.dimensions.d_x,this.dimensions.d_y,this.linearScale);
   }
   zoomFunction(runCallback){
     var self = this;
-    this.redraw(); console.log(self);
+    this.redraw();
     Promise.all([self.content.classed("zoomed",self.zoomed())]).then(function(){
-      console.log(self.container_id,self.zoomed(),self.parent.domains.domainX(self.dimensions.d_x),self.parent.domains.domainY(self.dimensions.d_y));
       if (runCallback) self.zoomCallback();
     });
   }
@@ -291,9 +288,7 @@ class DynamicPlot { // Container class for the dynamic subplot
   draw() {}
   redraw() {}
   createXAxis() { // Creates the upper and lower axes
-      this.x = d3.scaleLinear()
-          .domain(this.parent.domains.domainX(this.dimensions.d_x))
-          .range([0,this.dimensions.width]);
+      this.newXAxis();
       this.x_axis_bottom = this.content.append("g")
         .attr("transform", `translate(0,${this.dimensions.height})`)
         .classed("axis axis_bottom",true)
@@ -307,10 +302,13 @@ class DynamicPlot { // Container class for the dynamic subplot
           .classed("label_text",true)
           .html(this.xLabelHtml);
   }
+  newXAxis() {
+    this.x = d3.scaleLinear()
+        .domain(this.parent.domains.domainX(this.dimensions.d_x))
+        .range([0,this.dimensions.width]);
+  }
   createYAxis() { // Creates the left and right axes
-      this.y = d3.scaleLinear()
-          .domain(this.parent.domains.domainY(this.dimensions.d_y))
-          .range([this.dimensions.height, 0]);
+      this.newYAxis();
       this.y_axis_left = this.content.append("g")
           .attr("transform", "translate(0,0)")
           .classed("axis_left axis",true)
@@ -324,15 +322,33 @@ class DynamicPlot { // Container class for the dynamic subplot
         .classed("label_text",true)
         .html(this.yLabelHtml);
   }
+  newYAxis() {
+    this.y = (this.linearScale) ? d3.scaleLinear() : d3.scaleLog();
+    this.y
+        .domain(this.yDomainScaled())
+        .range([this.dimensions.height, 0]);
+  }
+  yDomainScaled() {
+    var domain = this.parent.domains.domainY(this.dimensions.d_y);
+    domain[0] = (this.linearScale)?domain[0]:Math.max(domain[0],10);
+    return domain;
+  }
+  toggleScaleLinear(scaleLinear,zoom=true) {
+    if (this.linearScale!=scaleLinear) {
+      this.linearScale = scaleLinear;
+      this.newYAxis();
+      if (zoom) this.zoomY(true);
+    }
+  }
   xAxisBottom() { return this.axisFormat(d3.axisBottom(this.x).tickSize(-3),this.initial_dimensions.axes.xBottom); }
   xAxisTop()    { return this.axisFormat(d3.axisTop(this.x).tickSize(-3),this.initial_dimensions.axes.xTop); }
   yAxisLeft()   { return this.axisFormat(d3.axisLeft(this.y).tickSize(-3), this.initial_dimensions.axes.yLeft); }
   yAxisRight()  { return this.axisFormat(d3.axisRight(this.y).tickSize(-3), this.initial_dimensions.axes.yRight); }
   axisFormat(axis,opt)   {
-    var options = {"format":"","ticks":null};
+    var options = {"format":"","ticks":null,"formatLog":null};
     if (typeof opt != 'undefined') Object.entries(opt).forEach((v)=>{ options[v[0]]=v[1]; });
     if (options.ticks) axis.ticks(options.ticks);
-    return axis.tickFormat(options.format);
+    return axis.tickFormat((this.linearScale||options.formatLog == null)?options.format:options.formatLog);
   }
 }
 class ScatterPlot extends DynamicPlot { // Container class for the dynamic subplot
@@ -361,20 +377,20 @@ class ScatterPlot extends DynamicPlot { // Container class for the dynamic subpl
     this.barsGroup.append("line").attr("class","xstd") //x_uncertainty
       .attr("x1", function (d) {return self.x((d.x+d.x_sdh),self.x);})
       .attr("x2", function (d) {return self.x((d.x-d.x_sdl),self.x);} )
-      .attr("y1", function (d) {return self.y(d.y);} ) // File values are in kiloyears but axis is in millions of years
-      .attr("y2", function (d) {return self.y(d.y);} );
+      .attr("y1", function (d) {return self.y(Math.max(d.y,1));} ) // File values are in kiloyears but axis is in millions of years
+      .attr("y2", function (d) {return self.y(Math.max(d.y,1));} );
     this.barsGroup.append("line").attr("class","ystd") //y_uncertainty
       .attr("x1", function (d) {return self.x(d.x);} ) // File values are in kiloyears but axis is in millions of years
       .attr("x2", function (d) {return self.x(d.x);} )
-      .attr("y1", function (d) {return self.y((d.y-d.y_sdl),self.y);} ) // File values are in kiloyears but axis is in millions of years
-      .attr("y2", function (d) {return self.y((d.y+d.y_sdh),self.y);} );
+      .attr("y1", function (d) {return self.y(Math.max((d.y-d.y_sdl),1),self.y);} ) // File values are in kiloyears but axis is in millions of years
+      .attr("y2", function (d) {return self.y(Math.max((d.y+d.y_sdh),1),self.y);} );
     this.pointGroup = this.thepoints.selectAll("circle")
       .data(this.data[0])
       .enter()
       .append("circle")
       .attr("class",function(d){return `${self.parent.class_axis[d.pr]}${((d.x<=d_x[0] && d.x>=d_x[1] && d.y<=d_y[1] && d.y>=d_y[0])?'':" hidden")}`;})
       .attr("cx", function (d) {return self.x(d.x);} ) // File values are in kiloyears but axis is in millions of years
-      .attr("cy", function (d) {return self.y(d.y);} )
+      .attr("cy", function (d) {return self.y(Math.max(d.y,1));} )
       .attr("r",1.5);
   }
   redraw() {
@@ -389,20 +405,20 @@ class ScatterPlot extends DynamicPlot { // Container class for the dynamic subpl
       .attr("class",function(d){return `${self.parent.class_axis[d.pr]}${((self.legend.entries[d.pr].draw && (d.x<=d_x[0] && d.x>=d_x[1] && d.y<=d_y[1] && d.y>=d_y[0]))?"":" hidden")}`;})
       .transition().duration(1000)
       .attr("cx", function (d) { return self.x(d.x); } )
-      .attr("cy", function (d) {return self.y(d.y);} );
+      .attr("cy", function (d) {return self.y(Math.max(d.y,1));} );
     this.barsGroup.attr("class",function(d){return `data_bars ${self.parent.class_axis[d.pr]}${((self.showBars && self.legend.entries[d.pr].draw && (d.x<=d_x[0] && d.x>=d_x[1] && d.y<=d_y[1] && d.y>=d_y[0]))?"":" hidden")}`;});
     this.barsGroup.selectAll(".xstd")
       .transition().duration(1000)
       .attr("x1", function (d) {return self.x((d.x+d.x_sdh),self.x);})
       .attr("x2", function (d) {return self.x((d.x-d.x_sdl),self.x);} )
-      .attr("y1", function (d) {return self.y(d.y);} ) // File values are in kiloyears but axis is in millions of years
-      .attr("y2", function (d) {return self.y(d.y);} );
+      .attr("y1", function (d) {return self.y(Math.max(d.y,1));} ) // File values are in kiloyears but axis is in millions of years
+      .attr("y2", function (d) {return self.y(Math.max(d.y,1));} );
     this.barsGroup.selectAll(".ystd")
       .transition().duration(1000)
       .attr("x1", function (d) {return self.x(d.x);} ) // File values are in kiloyears but axis is in millions of years
       .attr("x2", function (d) {return self.x(d.x);} )
-      .attr("y1", function (d) {return self.y((d.y-d.y_sdl),self.y);} ) // File values are in kiloyears but axis is in millions of years
-      .attr("y2", function (d) {return self.y((d.y+d.y_sdh),self.y);} );
+      .attr("y1", function (d) {return self.y(Math.max((d.y-d.y_sdl),1),self.y);} ) // File values are in kiloyears but axis is in millions of years
+      .attr("y2", function (d) {return self.y(Math.max((d.y+d.y_sdh),1),self.y);} );
   }
 }
 class LinePlot extends DynamicPlot {
@@ -499,7 +515,7 @@ class TimeLine extends DynamicPlot {
     this.tlGroup = this.tl.selectAll("g")
         .data(this.data[0])
         .enter().append("g").classed("tlobj",true)
-        .classed("hidden",function(d){console.log(self.x(d.x2),self.x(d.x1),self.dimensions.width); return self.x(d.x1)<0 || self.x(d.x2)>self.dimensions.width;})
+        .classed("hidden",function(d){return self.x(d.x1)<0 || self.x(d.x2)>self.dimensions.width;})
         .attr("transform",function (d) {return `translate(${self.x(d.x2)},0)`;})
         .attr("width",function (d) {return self.x(d.x1)-self.x(d.x2);})
         .attr("height",this.dimensions.height)
@@ -513,7 +529,7 @@ class TimeLine extends DynamicPlot {
         .on("mouseover", function(d) {
               d3.select(this).select(".tlcolor").transition().duration(400).attr("opacity",1);
               self.tooltipDiv.transition().duration(200).style("opacity", 0.9);
-              self.tooltipDiv.html(d.name).style("left", (d3.event.pageX) + "px").style("top", (d3.event.pageY-28) + "px");
+              self.tooltipDiv.html('click to zoom').style("left", (d3.event.pageX) + "px").style("top", (d3.event.pageY-30) + "px");
         })
         .on("mouseout", function(d) {
             d3.select(this).select(".tlcolor").transition().duration(200).attr("opacity",0);
@@ -522,7 +538,7 @@ class TimeLine extends DynamicPlot {
     this.tlGroup.append("rect").attr("class","tlbackground").attr("fill", function (d,i) {return (i%2)?"#dddddd":"#eeeeee";})
         .attr("width",function (d) {return self.x(d.x1)-self.x(d.x2);}).attr("height",self.dimensions.height).attr("x",0).attr("y",0);
     this.tlGroup.append("rect").attr("class","tlcolor")
-        .attr("width",function (d) {return Math.max(0,self.x(d.x1)-self.x(d.x2)-stroke);}).attr("height",self.dimensions.height-stroke)
+        .attr("width",function (d) {return Math.max(0,self.x(d.x1)-self.x(d.x2)-stroke);}).attr("height",(self.dimensions.height-stroke)*0.3)
         .attr("x",stroke/2).attr("y",stroke/2).attr("fill", function (d) {return d.color;}).attr("opacity",0);
     this.tlGroup.append("text").attr("class","tltext")
         //centers in the visible part of the timeline
@@ -541,6 +557,7 @@ class TimeLine extends DynamicPlot {
               cl = slf.node().getComputedTextLength();
           }
         });
+
     this.y_axis_left = this.content.append("g")
         .attr("transform", "translate(0,0)")
         .classed("axis_left axis",true)
@@ -566,14 +583,14 @@ class TimeLine extends DynamicPlot {
           d3.select(this).selectAll(".tlbackground")
             .attr("width",function (d) {return self.x(d.x1)-self.x(d.x2);});
           d3.select(this).selectAll(".tlcolor")
-              .attr("width",function (d) {console.log("a");return Math.max(0,self.x(d.x1)-self.x(d.x2)-stroke);});
+              .attr("width",function (d) {return Math.max(0,self.x(d.x1)-self.x(d.x2)-stroke);});
         });
     this.tlGroup.selectAll(".tlbackground")
       .transition().duration(1000)
       .attr("width",function (d) {return self.x(d.x1)-self.x(d.x2);});
     this.tlGroup.selectAll(".tlcolor")
         .transition().duration(1000)
-        .attr("width",function (d) {console.log("a");return Math.max(0,self.x(d.x1)-self.x(d.x2)-stroke);});
+        .attr("width",function (d) {return Math.max(0,self.x(d.x1)-self.x(d.x2)-stroke);});
     this.tlGroup.selectAll("text").transition()
         .on('start',function(){
           d3.select(this).attr("opacity",0).text(function(d){return d.name;});

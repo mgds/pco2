@@ -6,19 +6,23 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta charset="utf-8">
         <base href="/">
-        <link rel="stylesheet" href="css/pco2.min.css" />
+        <link rel="stylesheet" href="/css/pco2.min.css" />
         <link href="https://fonts.googleapis.com/css?family=Oswald&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css">
-        <script type="text/javascript" src="scripts/vendor/jquery.min.js"></script>
-        <script type="text/javascript" src="scripts/logic/smartResize.js"></script>
-        <script type="text/javascript" src="scripts/vendor/bootstrap-all.min.js"></script>
-        <script type="text/javascript" src="scripts/vendor/angular-all.min.js"></script>
-        <script type="text/javascript" src="scripts/vendor/d3.min.js"></script>
-				<script type="text/javascript" src="scripts/logic/pco2App.js"></script>
-        <script type="text/javascript" src="scripts/logic/pco2Controllers.js"></script>
-        <script type="text/javascript" src="scripts/logic/navbar.js"></script>
-				<script type="text/javascript" src="scripts/logic/d3Plots.js"></script>
-				<script type="text/javascript" src="scripts/logic/ageCO2Plot.js"></script>
+        <script type="text/javascript" src="/scripts/vendor/jquery.min.js"></script>
+        <script type="text/javascript" src="/scripts/logic/smartResize.js"></script>
+        <script type="text/javascript" src="/scripts/vendor/bootstrap-all.min.js"></script>
+        <script type="text/javascript" src="/scripts/vendor/angular-all.min.js"></script>
+        <script type="text/javascript" src="/scripts/vendor/d3.min.js"></script>
+        <script type="text/javascript" src="/scripts/logic/pco2App.js"></script>
+        <script type="text/javascript" src="/scripts/logic/pco2Controllers.js"></script>
+        <script type="text/javascript" src="/scripts/logic/navbar.js"></script>
+				<script type="text/javascript" src="/scripts/logic/d3Plots.js"></script>
+				<script type="text/javascript" src="/scripts/logic/ageCO2Plot.js"></script>
+				<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+				<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+				<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+				<link rel="manifest" href="/site.webmanifest">
 <!-- Google Analytics -->
 <script>
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -33,14 +37,7 @@ ga('send', 'pageview');
 </head>
 <body style="word-break: break-word;">
 	<div id="pco2Container">
-    <div id="pco2SearchBar" style="height:40px;background-color:#0c448b;width:100%;color:white;line-height:40px;font-size:1.2em;" class="hidden-xs hidden-sm">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6 text-left"><a style="color:white;" href="/">Home</a></div>
-            <!--<div class="col-md-6 text-right"><u>&nbsp;<small>SEARCH</small>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u> <i class="fas fa-search"></i></div>-->
-            </div>
-
-        </div>
+    <div id="pco2SearchBar" style="height:25px;background-color:#0c448b;width:100%;color:white;line-height:40px;font-size:1.2em;" class="hidden-xs hidden-sm">
     </div>
     <div id="pco2Header">
     <nav class="navbar navbar-default">
@@ -116,11 +113,10 @@ ga('send', 'pageview');
             </div>
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
               <ul class="nav navbar-nav navbar-right">
-                <!--<li><a href="/about">DATA PLOTTING</a></li>-->
-                <li><a href="/dataProxies">PROXY GROUPS</a></li>
+                <li><a href="/dataProxies">PALEO-CO<sub>2</sub> PROXIES</a></li>
                 <li><a href="/faqs">FAQS</a></li>
                 <li class="dropdown">
-                  <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" style="font-style:italic;">ABOUT PALEO-CO2<span class="caret"></span></a>
+                  <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" style="font-style:italic;">ABOUT PALEO-CO<sub>2</sub><span class="caret"></span></a>
                   <ul class="dropdown-menu">
                     <li><a href="/about">Overview</a></li>
                     <li><a href="/experts">Experts</a></li>

@@ -1,7 +1,4 @@
 class PCO2Plot { // Overall container class for plots
-
-
-
     constructor(container_id) {
       var self = this;
       this.plot_file = "data/Paleo-CO2_Plot.json";
@@ -62,7 +59,8 @@ class PCO2Plot { // Overall container class for plots
       this.pco2Plot.zoomCallback = function() {
         self.timeline1.zoomX(false);
         self.tempPlot1.zoomX(false);
-        self.iceCorePlot.zoomY(false);
+        self.iceCorePlot.toggleScaleLinear(self.pco2Plot.linearScale,false);
+        self.iceCorePlot.zoomY(true);
       };
       this.pco2Plot.makeBrush();
       this.pco2Plot.addData();
@@ -124,8 +122,15 @@ class PCO2Plot { // Overall container class for plots
         .on("click",function(d){
           window.open("https://doi.org/10.1002/2014GL061957","_blank");
         });
+      this.iceCorePlot.content.append("g")
+        .attr("transform",`translate(${this.dims.iceCorePlot.width-6},20)`)
+        .append("text").attr("class","reference").attr("text-anchor","end")
+        .text("Dlugokencky et al. (2020)")
+        .on("click",function(d){
+          window.open("https://doi.org/10.15138/wkgj-f215","_blank");
+        });
       this.iceCorePlot.labelZoom = this.iceCorePlot.content.append("g").attr("class","zoom_label")
-        .attr("transform",`translate(${this.dims.iceCorePlot.width-12},${this.dims.iceCorePlot.height-20})`)
+        .attr("transform",`translate(${this.dims.iceCorePlot.width-12},${this.dims.iceCorePlot.height-7})`)
         .on("click",function(){
             self.domains.domainX( self.dims.iceCorePlot.d_x, [2,0] );
             self.domains.domainY( self.dims.iceCorePlot.d_y, [0,1000] );
@@ -135,13 +140,17 @@ class PCO2Plot { // Overall container class for plots
         });
       this.iceCorePlot.zoomButton();
       this.iceCorePlot.zoomCallback = function() {
+        console.log(self.iceCorePlot.y(500));
+        self.iceCorePlot.labelZoom
+          .transition().duration(1000)
+          .attr("transform",`translate(${self.dims.iceCorePlot.width-12},${self.iceCorePlot.y(450)})`)
         self.tempPlot2.zoomX(false);
         self.timeline2.zoomX(false);
         self.pco2Plot.zoomY(false);
       };
       this.iceCorePlot.labelZoom.append("text")
-        .html("<tspan x=\"0\">Mauna Loa</tspan><tspan dy=\"6\" x=\"0\">atmospheric data</dy>");
-      var markerSize = 3
+        .html("<tspan x=\"0\" dy=\"-6\">Mauna Loa</tspan><tspan dy=\"6\" x=\"0\">atmospheric data</dy>");
+      var markerSize = 3;
       this.container.append("svg:defs").append("svg:marker").attr("id", "triangle")
           .attr('viewBox', [0, 0, markerSize, markerSize])
           .attr("refX", 1.5).attr("refY", markerSize/2)
@@ -150,7 +159,7 @@ class PCO2Plot { // Overall container class for plots
           .append("path").style("stroke", "#ff4400").style("fill","#ff4400")
           .attr("d", d3.line()([[0, 0], [0, markerSize], [markerSize, markerSize/2]]));
       this.iceCorePlot.labelZoom.append("path")
-        .attr('d', d3.line()([[2, 6], [8, 10]]))
+        .attr('d', d3.line()([[2, -6], [8, -2]]))
         .attr("marker-end", "url(#triangle)");
     }
     showUncertainties() {
@@ -198,7 +207,7 @@ class PCO2Plot { // Overall container class for plots
       this.height = row2Y+this.plotDims[0][1]+this.lbl.xAxisH+this.padding;
       this.dims = {
         "pco2Plot"   : {"width":this.plotDims[0][0],"height":this.plotDims[0][1],"margins":{"left":col1X,"top":row2Y},"d_x":0,"d_y":0,
-            "axes":{"xBottom":{"format":function(d){return d/1000;}},"yLeft":{"format":d3.format("d")} }},
+            "axes":{"xBottom":{"format":function(d){return d/1000;}},"yLeft":{"format":d3.format("d"),"formatLog":function(d){return (Number.isInteger(Math.log10(d))||Number.isInteger(Math.log10(d*2)))?d:"";}} }},
         "tempPlot1"  : {"width":this.plotDims[0][0],"height":this.plotDims[1][1],"margins":{"left":col1X,"top":row1Y},"d_x":0,"d_y":1,
             "axes":{"yLeft":{"ticks":6,"format":d3.format("d")},"yRight":{"ticks":6} }},
         "timeline1"  : {"width":this.plotDims[0][0],"height":this.plotDims[2][1],"margins":{"left":col1X,"top":tlY  },"d_x":0,"d_y":0,
@@ -208,7 +217,7 @@ class PCO2Plot { // Overall container class for plots
         "timeline2"  : {"width":this.plotDims[1][0],"height":this.plotDims[2][1],"margins":{"left":col2X,"top":tlY  },"d_x":1,"d_y":0,
             "axes":{"yRight":{"ticks":0},"yLeft":{"ticks":0},"xBottom":{"ticks":0},"xTop":{"ticks":0} }},
         "iceCorePlot": {"width":this.plotDims[1][0],"height":this.plotDims[0][1],"margins":{"left":col2X,"top":row2Y},"d_x":1,"d_y":0,
-            "axes":{"xBottom":{"format":function(d){return d;},"ticks":5},"yRight":{"format":d3.format("d")},"xTop":{"ticks":5} }},
+            "axes":{"xBottom":{"format":function(d){return d;},"ticks":5},"yRight":{"format":d3.format("d"),"formatLog":function(d){return (Number.isInteger(Math.log10(d))||Number.isInteger(Math.log10(d*2)))?d:"";}},"xTop":{"ticks":5} }},
         "legend"     : {"width":this.plotDims[2][0],"height":this.plotDims[0][1],"margins":{"left":col0X,"top":row2Y}},
         "logo"       : {"width":this.plotDims[2][0],"height":this.plotDims[1][1],"margins":{"left":col0X,"top":row1Y}},
         "expanded"   : {
@@ -293,6 +302,7 @@ class PCO2Plot { // Overall container class for plots
           var d_y = self.pco2Plot.y.domain();
           var entries = self.pco2Plot.legend.entries;
           var filtered_data = data.filter(function(d){
+            console.log(d.proxy);
             return ((d.age!==null && d.co2!==null) &&//age and co2 values are defined
               ( d.age<=d_x[0] && d.age>=d_x[1] && d.co2<=d_y[1] && d.co2>=d_y[0] ) && //age and co2 values are in current dynamic_plot domain
               entries[d.proxy].draw); //data proxy is switched on in the legend
@@ -305,9 +315,10 @@ class PCO2Plot { // Overall container class for plots
         var out = [];
         out.push(JSON.stringify(Object.keys(data[0])).replace(/(^\[)|(\]$)/mg, ''));
         data.forEach(function(d){
-          out.push(JSON.stringify(Object.values(d)).replace(/(^\[)|(\]$)/mg, ''));
+          console.log(JSON.stringify(Object.values(d)).replace(/(^\[)|(\]$)/mg, ''));
+          out.push(JSON.stringify(Object.values(d)).replace(/(^\[)|(\]$)/mg, '').replace(/,null/mg, ',').replace('\\u00a0',''));
         });
-        this.downloadFunction("data:text/csv,"+encodeURIComponent(out.join("\n")),"age_co2_plot_data.csv");
+        this.downloadFunction("data:text/csv;charset=utf-8,"+encodeURIComponent("\uFEFF"+unescape(out.join("\n"))),"age_co2_plot_data.csv");
       } else {
         this.downloadFunction("data:text/json,"+encodeURIComponent(JSON.stringify(data,null,4)),"age_co2_plot_data.json");
       }

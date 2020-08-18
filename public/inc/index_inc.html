@@ -1,42 +1,100 @@
 <div id="idxcontent"></div>
 <div style="background-color:#b19f7e;width:100%;color:white;margin-bottom:30px;">
-    <div class="container"><div class='clearfix' style="background-color:#e5decf;color:#0c448b;padding-top:20px;padding-bottom:20px;">
-        <div class="col-md-4">
-            <h3>
-                Welcome to  paleo-co2.org!
-            </h3>
-            <p style="color:black">
-                This site will provide access to a compilation of proxy CO<sub>2</sub> data that is being assembled and curated by an international group of proxy experts.  Our goals are to facilitate access to these data, provide details of each proxy, explanatory animations and videos, and interactive plots that allow users to explore these important data. Please check back soon for updates!
-            </p>
+  <div class="container">
+    <div class='clearfix' style="background-color:#e5decf;color:#0c448b;padding-top:20px;padding-bottom:20px;">
+      <div class="col-xs-12">
+          <h3>
+              Welcome to  paleo-co2.org!
+          </h3>
+          <p style="color:black">
+            This site provides access to published paleo-CO<sub>2</sub> data that have been assembled and
+            curated by an international group of proxy experts. An expert-vetted data compilation
+            is currently being assessed and will be made available in the future, along with
+            explanatory animations and videos. Content and functionality of this site are updated
+            frequently, so please check back soon and follow us on Twitter for periodic update announcements.
+          </p>
+      </div>
+      <div class="col-xs-12">
+        <div style="position:relative;">
+          <div id="age_co2_plot"></div>
+          <div class="hidden-xs hidden-sm" style="position:absolute;bottom:10px;left:10px;">
+            <form class="form-inline" id="downloadForm">
+              <div class="btn-group">
+                <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Download Data <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a href="#" ng-click="showDownloadDialog('csv')">CSV</a></li>
+                  <li><a href="#" ng-click="showDownloadDialog('json')">JSON</a></li>
+                </ul>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Download Image <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a href="#" onclick="ageCO2Plot.downloadImage('png')" >PNG</a></li>
+                  <li><a href="#" onclick="ageCO2Plot.downloadImage('svg')" >SVG</a></li>
+                </ul>
+              </div>
+            </form>
+          </div>
         </div>
-        <div class="col-xs-12">
-            <div class="col-xs-12 plot_box">
-              <div id="age_co2_plot"></div>
-              <form class="form-inline" id="downloadForm">
-                <div class="btn-group">
-                  <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Download Data <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu">
-                    <li><a href="#" onclick="ageCO2Plot.downloadData('csv')">CSV</a></li>
-                    <li><a href="#" onclick="ageCO2Plot.downloadData('json')">JSON</a></li>
-                  </ul>
-                </div>
-                <div class="btn-group">
-                  <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Download Image <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu">
-                    <li><a href="#" onclick="ageCO2Plot.downloadImage('png')" >PNG</a></li>
-                    <li><a href="#" onclick="ageCO2Plot.downloadImage('svg')" >SVG</a></li>
-                  </ul>
-                </div>
-                <button type="button" id="showHideHolocene" class="btn btn-default btn-sm" style="float:right;margin-left:5px;">Zoom to Holocene</button>
-                <button type="button" id="showHideErrors" class="btn btn-default btn-sm"style="float:right">Hide Error Bars</button>
-              </form>
+
+        <div class="col-xs-12 col-md-6 col-md-push-6 col-lg-8 col-lg-push-4">
+          <div class="row">
+          <div class="col-xs-6 hidden-md hidden-lg">
+            <form class="form-inline row btn-row" id="downloadForm">
+              <div class="btn-group">
+                <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Download Data <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a href="#" ng-click="showDownloadDialog('csv')">CSV</a></li>
+                  <li><a href="#" ng-click="showDownloadDialog('json')">JSON</a></li>
+                </ul>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-default btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                  Download Image <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu">
+                  <li><a href="#" onclick="ageCO2Plot.downloadImage('png')" >PNG</a></li>
+                  <li><a href="#" onclick="ageCO2Plot.downloadImage('svg')" >SVG</a></li>
+                </ul>
+              </div>
+            </form>
+          </div>
+          <div class="col-xs-6 col-md-12">
+            <form class="form-inline" id="downloadForm" style="text-align:right;">
+            <div class="row btn-row">
+                <button type="button" id="showHideErrors" class="btn btn-default btn-sm">Hide Error Bars</button>
             </div>
+            <div class="row btn-row">
+              <span>CO<sub>2</sub> scale</span>
+              <div class="btn-group">
+                <button type="button" class="btn btn-default btn-sm" ng-class="{'active':ageCO2Plot.pco2Plot.linearScale}" ng-click="ageCO2Plot.pco2Plot.toggleScaleLinear(true)">Linear</button>
+                <button type="button" class="btn btn-default btn-sm" ng-class="{'active':!ageCO2Plot.pco2Plot.linearScale}" ng-click="ageCO2Plot.pco2Plot.toggleScaleLinear(false)">Log</button>
+              </div>
+            </div>
+            </form>
+          </div>
+          </div>
         </div>
-        </div></div>
+        <div class="col-xs-12 col-md-6 col-md-pull-6 col-lg-4 col-lg-pull-8">
+          <div class="row">
+            <h4>Instructions</h4>
+            <p>
+              Click and drag or select an epoch in the plot above to zoom.
+              Zoom out using the magnifying glass icon. Click on the proxy names
+              in the legend to toggle their visibility.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
 </div>
 <div class="container">
         <div class="row" style="margin-bottom:30px;">

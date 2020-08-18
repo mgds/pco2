@@ -19,9 +19,51 @@ pco2Controllers.run(function($rootScope){
 
 });
 
-pco2Controllers.controller('indexView',['$scope','$timeout',function($scope,$timeout) {
+pco2Controllers.controller('indexView',['$scope','$timeout','ModalService',function($scope,$timeout,ModalService) {
     $timeout(function(){ $(".centralcontent").hide().fadeIn(500); }, 500);
     ageCO2Plot = new PCO2Plot("#age_co2_plot");
+    $scope.ageCO2Plot = ageCO2Plot;
+    $scope.showDownloadDialog = function(format) {
+        ModalService.showModal({
+          templateUrl: "/inc/modal_download.html",
+          controller: 'downloadController',
+          preClose: (modal) => {
+              modal.element.modal('hide');
+          },
+          inputs: {
+            title: "Terms of Use",
+            format: format
+          }
+        }).then(function(modal) {
+          modal.element.on('hidden.bs.modal', function () {
+              if (!modal.closed) {
+                modal.close.then(function(){});
+              }
+          });
+          modal.element.modal();
+          modal.close.then(function() {});
+        });
+    };
+}]);
+
+pco2Controllers.controller('downloadController', [
+  '$scope', '$element', 'title','format','close',
+function($scope, $element, title, format, close) {
+  $scope.title = title;
+  $scope.format = format;
+  //  This close function doesn't need to use jQuery or bootstrap, because
+  //  the button has the 'data-dismiss' attribute.
+  $scope.close = function() {
+    ageCO2Plot.downloadData(format);
+ 	  close(false, 500);
+  };
+
+  //  This cancel function must use the bootstrap, 'modal' function because
+  //  the doesn't have the 'data-dismiss' attribute.
+  $scope.cancel = function() {
+    $element.modal('hide');
+    close(false, 500);
+  };
 }]);
 
 pco2Controllers.controller('aboutView',['$scope','$timeout','$window',function($scope,$timeout,$window) {
