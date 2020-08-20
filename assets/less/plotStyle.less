@@ -1,0 +1,182 @@
+@plot_color: #396aa8;
+@plot_color_inactive: #b4cae5;
+@plot_color_phytoplankton: #890903;
+@plot_color_boron: #CC5304;
+@plot_color_stomatal: #D38F08;
+@plot_color_leafgas: #3B9001;
+@plot_color_liverworts: #028492;
+@plot_color_c3plants: #394B9F;
+@plot_color_paleosols: #7424A7;
+@plot_color_nahcolite: #3D0F5A;
+
+.tooltip {
+  position: absolute;
+  font: 400 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: black;
+  border: 0px;
+  pointer-events: none;
+}
+#container_svg {
+  .background {
+    fill: white;
+  }
+  .button_group {
+    cursor: pointer;
+    overflow: overlay;
+    rect {
+      stroke:gray; // As per website schema
+      stroke-width:2;
+      cursor:pointer; // Hand cursor
+      fill: #ddd;
+    }
+    text {
+      font: 12px Oswald, "Helvetica Neue", Helvetica, Arial, sans-serif;
+      fill: @plot_color;
+    }
+  }
+  .dynamic_plot{
+    .hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .reference {
+      text-decoration: none;
+      font-size: 6px;
+      font-weight: 700;
+      font-family: sans-serif;
+      fill: @plot_color;
+      opacity: 0.6;
+      cursor: pointer;
+    }
+    .zoom_label {
+      opacity: 0.8;
+      cursor: pointer;
+      text {
+        fill: #ff4400;
+        text-anchor: end;
+        text-decoration: none;
+        font-size: 6px;
+        font-weight: 700;
+        font-family: sans-serif;
+      }
+      path {
+        stroke-width: 1;
+        stroke: #ff4400;
+      }
+    }
+    &.zoomed .zoom_label {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    &.zoomed:hover .zoom_button {
+      opacity: 0.8;
+      pointer-events: all;
+      &:hover {
+        opacity: 1;
+      }
+    }
+    .zoom_button {
+      cursor: pointer;
+      opacity: 0;
+      pointer-events: none;
+      rect {
+        stroke:gray; // As per website schema
+        stroke-width:0;
+        cursor:pointer; // Hand cursor
+        fill: #ddd;
+      }
+      text {
+        font: 900 10px "Font Awesome 5 Free";
+        fill: @plot_color;
+      }
+    }
+    &:hover {
+      .exp_button {
+        opacity: 0.8;
+      }
+      .reference {
+        opacity: 1;
+      }
+    }
+    .exp_button {
+      cursor: pointer;
+      opacity: 0;
+      text {
+        font: 900 10px "Font Awesome 5 Free";
+        fill: @plot_color;
+      }
+    }
+  }
+
+  .selection {
+    fill: #ddd;
+    stroke: gray;
+    fill-opacity: 0.3;
+    stroke-opacity: 0.7;
+    stroke-width: 1;
+  }
+  #legend_container {
+    .legend_row {
+      cursor: pointer;
+      opacity: 1;
+      &.inactive {
+        opacity: 0.3;
+      }
+    }
+    text {
+      font: 700 10px/10px Helvetica, Arial, sans-serif;
+      fill: @plot_color;
+    }
+  }
+  .axis {
+    text {
+      font-size:5pt;
+      font-weight:bold;
+      fill: @plot_color;
+    }
+    line, .domain {
+      stroke: @plot_color;
+    }
+  }
+  .label_text {
+    text-anchor: middle;
+    font: bold 8px sans-serif;
+    fill: @plot_color;
+    .sub {
+      baseline-shift: sub;
+      font-size: 0.7em;
+    }
+  }
+  .all_points {
+    .hidden {
+      opacity: 0;
+    }
+    line {
+      stroke: gray;
+      stroke-width: 0.8px;
+    }
+  }
+  .timelineg {
+    .tlbackground {
+      stroke: gray;
+      stroke-width: 0.7px;
+    }
+    .tltext {
+      font-size: 6px;
+      font-family: sans-serif;
+      pointer-events: none;
+      font-weight: bold;
+    }
+  }
+  circle {
+    &.phytoplankton {fill:@plot_color_phytoplankton}
+    &.boron {fill:@plot_color_boron}
+    &.stomatal {fill:@plot_color_stomatal}
+    &.leafgas {fill:@plot_color_leafgas}
+    &.liverworts {fill:@plot_color_liverworts}
+    &.c3plants {fill:@plot_color_c3plants}
+    &.paleosols {fill:@plot_color_paleosols}
+    &.nahcolite {fill:@plot_color_nahcolite}
+  }
+}

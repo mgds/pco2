@@ -1,5 +1,7 @@
 nbproject
 node_modules
+assets
+supplemental
 Dockerfile
 .dockerignore
 bower.json
