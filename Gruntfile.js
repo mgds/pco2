@@ -91,7 +91,11 @@ module.exports = function(grunt) {
             'assets/pco2_site/pco2App.js',
             'assets/pco2_site/pco2Controllers.js',
             'assets/pco2_site/navbar.js',
-          ],
+          ]
+        }
+      },
+      plot_logic: {
+        files: {
           'public/scripts/ageCO2Plot.js' : [
             'assets/plot/PlotUtils.js',
             'assets/plot/Legend.js',

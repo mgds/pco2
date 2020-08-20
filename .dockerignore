@@ -1,10 +1,10 @@
 nbproject
 node_modules
-assets
 supplemental
 Dockerfile
 .dockerignore
-bower.json
 bower_components
+public/css/*
+public/scripts/*
 .git
-.gitignore
+**/.gitignore
