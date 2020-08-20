@@ -41,11 +41,9 @@
     "grunt-contrib-less": "^2.0.0",
     "grunt-contrib-uglify": "^3.0.1",
     "grunt-contrib-watch": "^1.0.0",
-    "jade": "~1.11.0",
     "json2csv": "^3.7.3",
     "lightbox2": "^2.10.0",
     "method-override": "^2.3.8",
-    "moment": "^2.18.1",
     "morgan": "^1.9.1",
     "serve-favicon": "^2.5.0"
   }
