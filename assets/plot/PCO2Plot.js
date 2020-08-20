@@ -125,9 +125,9 @@ class PCO2Plot { // Overall container class for plots
       this.iceCorePlot.content.append("g")
         .attr("transform",`translate(${this.dims.iceCorePlot.width-6},20)`)
         .append("text").attr("class","reference").attr("text-anchor","end")
-        .text("Dlugokencky et al. (2020)")
+        .text("NOAA ESRL GML (2020)")
         .on("click",function(d){
-          window.open("https://doi.org/10.15138/wkgj-f215","_blank");
+          window.open("https://doi.org/10.15138/yaf1-bk21","_blank");
         });
       this.iceCorePlot.labelZoom = this.iceCorePlot.content.append("g").attr("class","zoom_label")
         .attr("transform",`translate(${this.dims.iceCorePlot.width-12},${this.dims.iceCorePlot.height-7})`)
