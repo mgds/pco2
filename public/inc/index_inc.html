@@ -68,7 +68,7 @@
           <div class="col-xs-6 col-md-12">
             <form class="form-inline" id="downloadForm" style="text-align:right;">
             <div class="row btn-row">
-                <button type="button" id="showHideErrors" class="btn btn-default btn-sm">Hide Error Bars</button>
+                <button type="button" id="showHideErrors" class="btn btn-default btn-sm" ng-click="toggleErrorBars()">{{ageCO2Plot.pco2Plot.showBars?'Hide':'Show'}} Error Bars</button>
             </div>
             <div class="row btn-row">
               <span>CO<sub>2</sub> scale</span>
