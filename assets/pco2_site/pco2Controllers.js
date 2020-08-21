@@ -28,6 +28,7 @@ pco2Controllers.controller('indexView',['$scope','$timeout','ModalService',funct
         $scope.ageCO2Plot.showUncertainties();
       }
     };
+    var ageCO2Plot=$scope.ageCO2Plot;
     $scope.showDownloadDialog = function(format) {
         ModalService.showModal({
           templateUrl: "/inc/modal_download.html",
@@ -37,7 +38,8 @@ pco2Controllers.controller('indexView',['$scope','$timeout','ModalService',funct
           },
           inputs: {
             title: "Terms of Use",
-            format: format
+            format: format,
+            ageCO2Plot: ageCO2Plot
           }
         }).then(function(modal) {
           modal.element.on('hidden.bs.modal', function () {
@@ -52,8 +54,8 @@ pco2Controllers.controller('indexView',['$scope','$timeout','ModalService',funct
 }]);
 
 pco2Controllers.controller('downloadController', [
-  '$scope', '$element', 'title','format','close',
-function($scope, $element, title, format, close) {
+  '$scope', '$element', 'title','format','ageCO2Plot','close',
+function($scope, $element, title, format, ageCO2Plot, close) {
   $scope.title = title;
   $scope.format = format;
   //  This close function doesn't need to use jQuery or bootstrap, because
