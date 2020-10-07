@@ -14,6 +14,7 @@
     <ol class="breadcrumb">
       <li><a href="/">Home</a></li>
       <li><a href="/faqs">FAQs</a></li>
+      <li class="active"><span ng-bind-html='faq.question | trust'></span></li>
     </ol></div>
     <div class="col-md-12">
         <div ng-include="'/inc/faqs/'+faq.prefix+'long.html'"></div>

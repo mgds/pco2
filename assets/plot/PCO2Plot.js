@@ -3,7 +3,8 @@ class PCO2Plot { // Overall container class for plots
       var self = this;
       this.plot_file = "data/Paleo-CO2_Plot.json";
       this.archive_file = "data/Paleo-CO2_Archive.json";
-      this.temp_file = "data/temp.json";
+      this.temp_file = "data/tempWesterhold.json";
+      this.temp_file800 = "data/tempWesterholdModern.json";
       this.temp_modern_file = "data/tempModern.json";
       this.iceCore_file = "data/co2bereiter.json";
       this.maunaLoa_file = "data/co2MaunaLoa.json";
@@ -21,7 +22,7 @@ class PCO2Plot { // Overall container class for plots
       //PLOT DOMAINS
       this.domains = new DomainControl([
         [[70000,0],[0,10000]], //pco2 plot units kiloAnnum and ppm
-        [[800,0],[5,30]] //temperature plot 2 units kiloAnnum and degC (other plots based on these dimensions)
+        [[800,0],[5,35]] //temperature plot 2 units kiloAnnum and degC (other plots based on these dimensions)
       ]);
       //External and inter-plot spacing in pixels
       this.padding = 8;
@@ -72,9 +73,9 @@ class PCO2Plot { // Overall container class for plots
       this.tempPlot1.content.append("g")
         .attr("transform",`translate(6,${this.dims.tempPlot1.height-6})`)
         .append("text").attr("class","reference")
-        .text("Hansen et al. (2013)")
+        .text("Westerhold et al. (2020)")
         .on("click",function(d){
-          window.open("https://doi.org/10.1098/rsta.2012.0294","_blank");
+          window.open("https://doi.org/10.1126/science.aba6853","_blank");
         });
       this.tempPlot1.zoomButton();
       this.tempPlot1.zoomCallback = function() {
@@ -89,15 +90,15 @@ class PCO2Plot { // Overall container class for plots
         self.tempPlot1.zoomX(false);
       };
       //HANSEN TEMP PLOT to 800ka
-      this.tempPlot2 = new LinePlot(this,[this.temp_file,this.temp_modern_file],'tempPlot2', this.dims.tempPlot2);
+      this.tempPlot2 = new LinePlot(this,[this.temp_file800,this.temp_modern_file],'tempPlot2', this.dims.tempPlot2);
       this.tempPlot2.addData();
       this.tempPlot2.content.append("g")
         .attr("transform",`translate(${this.dims.tempPlot2.width-6},${this.dims.tempPlot1.height-6})`)
         .append("text").attr("class","reference")
         .attr("text-anchor","end")
-        .text("Hansen et al. (2013)")
+        .text("Westerhold et al. (2020)")
         .on("click",function(d){
-          window.open("https://doi.org/10.1098/rsta.2012.0294","_blank");
+          window.open("https://doi.org/10.1126/science.aba6853","_blank");
         });
       this.tempPlot2.zoomButton();
       this.tempPlot2.zoomCallback = function() {
@@ -118,7 +119,7 @@ class PCO2Plot { // Overall container class for plots
       this.iceCorePlot.content.append("g")
         .attr("transform",`translate(${this.dims.iceCorePlot.width-6},12)`)
         .append("text").attr("class","reference").attr("text-anchor","end")
-        .text("Bereiter et al. (2015)")
+        .text("Ice Core Compilation")
         .on("click",function(d){
           window.open("https://doi.org/10.1002/2014GL061957","_blank");
         });
@@ -140,7 +141,6 @@ class PCO2Plot { // Overall container class for plots
         });
       this.iceCorePlot.zoomButton();
       this.iceCorePlot.zoomCallback = function() {
-        console.log(self.iceCorePlot.y(500));
         self.iceCorePlot.labelZoom
           .transition().duration(1000)
           .attr("transform",`translate(${self.dims.iceCorePlot.width-12},${self.iceCorePlot.y(450)})`)
@@ -302,7 +302,6 @@ class PCO2Plot { // Overall container class for plots
           var d_y = self.pco2Plot.y.domain();
           var entries = self.pco2Plot.legend.entries;
           var filtered_data = data.filter(function(d){
-            console.log(d.proxy);
             return ((d.age!==null && d.co2!==null) &&//age and co2 values are defined
               ( d.age<=d_x[0] && d.age>=d_x[1] && d.co2<=d_y[1] && d.co2>=d_y[0] ) && //age and co2 values are in current dynamic_plot domain
               entries[d.proxy].draw); //data proxy is switched on in the legend
@@ -315,7 +314,6 @@ class PCO2Plot { // Overall container class for plots
         var out = [];
         out.push(JSON.stringify(Object.keys(data[0])).replace(/(^\[)|(\]$)/mg, ''));
         data.forEach(function(d){
-          console.log(JSON.stringify(Object.values(d)).replace(/(^\[)|(\]$)/mg, ''));
           out.push(JSON.stringify(Object.values(d)).replace(/(^\[)|(\]$)/mg, '').replace(/,null/mg, ',').replace('\\u00a0',''));
         });
         this.downloadFunction("data:text/csv;charset=utf-8,"+encodeURIComponent("\uFEFF"+unescape(out.join("\n"))),"age_co2_plot_data.csv");

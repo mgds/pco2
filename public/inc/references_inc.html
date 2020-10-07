@@ -1,0 +1,83 @@
+<div id="idxcontent"></div>
+<div style="background-color:#b19f7e;width:100%;color:white;line-height:30px;margin-bottom:30px;">
+    <div class="container">
+        <div class='clearfix' style="background-color:#e5decf;color:#0c448b;">
+            <div class="col-xs-12 text-left" style="background-color:#e5decf;color:#0c448b;font-size:24px;padding-top:20px;padding-bottom:20px;font-family:'Oswald'">
+Paleo-CO<sub>2</sub> References
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container">
+  <div class="row" style="margin-bottom:30px;">
+    <div class='col-xs-12'>
+      <ol class="breadcrumb">
+        <li><a href="/">Home</a></li>
+        <li class="active">References</li>
+      </ol>
+    </div>
+    <div class="col-xs-12">
+      <form class="form-horizontal row row-zero-margin">
+          <div class="form-group col-md-4 col-sm-6" >
+              <div class=" col-xs-12"><input type="text" class="form-control" id="searchResultsField" placeholder="Search References" ng-model="query"></div>
+          </div>
+          <div class="col-md-4 col-sm-6 form-group pull-right">
+              <div class="col-xs-12">
+                  <div class="input-group">
+                  <select class="form-control selectpicker" ng-model="sortFunction" ng-change="sortChange()">
+                      <option value="yearSort">Sort by year</option>
+                      <option value="authorSort">Sort by author</option>
+                  </select>
+                  <span style="cursor:pointer" ng-click="reverse=!reverse" class="sortorder input-group-addon" ng-class="{reverse:reverse}"></span>
+                  </div>
+              </div>
+          </div>
+      </form>
+      <div class="col-xs-12">
+      <div style="margin-bottom:10px;" ng-repeat="ref in (crefs = (refs | filter:query:ignoreAccents | orderBy:sortorder:reverse))">
+          <div ng-if="sortFunction=='yearSort'&&($index==0||crefs[$index-1]['issued']['date-parts'][0][0]!=ref['issued']['date-parts'][0][0])">
+            <h3>{{ref['issued']['date-parts'][0][0]}}</h3>
+          </div>
+          <div ng-if="sortFunction=='authorSort'&&($index==0||crefs[$index-1]['author'][0]['family'][0]!=ref['author'][0]['family'][0])">
+            <h3>{{ref['author'][0]['family'][0]}}</h3>
+          </div>
+          <span class="refauthors" ng-bind-html="ref.author | authorsFormat"></span>
+          <span class="refyear">({{ref['issued']['date-parts'][0][0]}}).</span>
+          <span class="reftitle" style="font-weight:bold;"><a style="color:#0c1f72;" href="https://doi.org/{{ref.DOI}}">{{ref.title}}</a>.</span>
+          <span class="refjournal" ng-if="ref.type=='article-journal'">
+            <span
+              style="font-style:italic;"
+              class="journaltitle"
+            >{{ref['container-title']}}</span><span
+              style="font-style:italic;"
+              class="journalvolume"
+              ng-if="ref.volume"
+            >, {{ref.volume}}</span><span
+              class="journalissue"
+              ng-if="ref.volume && ref['journal-issue'] && ref['journal-issue']['issue']"
+            >({{ref['journal-issue']['issue']}})</span><span
+              style="journalpages"
+              ng-if="ref.page">, {{ref.page}}</span>.
+          </span>
+          <span class="refchapter" ng-if="ref.type=='chapter'">
+            In <span class="refeditors" ng-bind-html="ref.editor | editorsFormat"></span>, <span
+              style="font-style:italic;"
+              class="booktitle"
+            >{{ref['container-title']}}</span><span ng-if="ref.volume||ref.page"> (<span
+              style="font-style:italic;"
+              class="journalvolume"
+              ng-if="ref.volume"
+            >{{ref.volume}}</span><span
+              class="comma"
+              ng-if="ref.volume && ref.page"
+            >, </span><span
+              style="journalpages"
+              ng-if="ref.page">{{ref.page}}</span>)</span>.
+            <span class="refpublisher">{{ref['publisher-location']}}: {{ref['publisher']}}</span>
+          </span>
+          <span class="refdoi"><a href="https://doi.org/{{ref.DOI}}">https://doi.org/{{ref.DOI}}</a></span>
+      </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -12,6 +12,8 @@ var routes = {
   '/proxiesLeafGas': { templateUrl: 'inc/leafgas_inc.html', controller: 'aboutView' },
   '/privacy': { templateUrl: 'inc/privacy_inc.html', controller: 'aboutView' },
   '/experts': { templateUrl: 'inc/expert_inc.html', controller: 'aboutView' },
+  '/references': { templateUrl: 'inc/references_inc.html', controller: 'refView' },
+  '/contribute': { templateUrl: 'inc/contribute_inc.html', controller: 'aboutView' },
   '/faqs': { templateUrl: 'inc/faqs/faq_inc.html', controller: 'faqsView' },
   '/faq/:faqid': { templateUrl: 'inc/faqs/faqContainer.html', controller: 'faqView' }
 };
