@@ -1,4 +1,9 @@
 /nbproject
 /node_modules
 /bower_components
+/public/css/bootstrap-custom.css
+/public/css/pco2.min.css
+/public/scripts
+/public/fonts
 **/.DS_Store
+config.env

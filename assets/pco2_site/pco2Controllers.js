@@ -12,6 +12,7 @@ pco2Controllers.filter("trust", ['$sce', function($sce) {
   };
 }]);
 
+
 pco2Controllers.run(function($rootScope){
   $rootScope.Utils = {
      keys : Object.keys
@@ -101,3 +102,58 @@ pco2Controllers.controller('faqView',[
       $window.scrollTo({top:0});
     }, 200);
 }]);
+
+pco2Controllers.filter("authorsFormat", ['$sce','refService', function($sce,refService) {
+  return function(authors){
+    return $sce.trustAsHtml(refService.authors(authors));
+  };
+}]);
+pco2Controllers.filter("editorsFormat", ['$sce','refService', function($sce,refService) {
+  return function(editors){
+    return $sce.trustAsHtml(refService.editors(editors));
+  };
+}]);
+
+pco2Controllers.controller('refView',[
+  '$scope','$timeout','$window','$http','$routeParams','$location',
+  function($scope,$timeout,$window,$http,$routeParams,$location) {
+    $scope.yearSort = function(ref) {
+      var year = ref.issued['date-parts'][0][0];
+      var author = ref.author[0];
+      return `${(10000-year)} ${author.family} ${author.given}`;
+    };
+    $scope.authorSort = function(ref) {
+      var year = ref.issued['date-parts'][0][0];
+      var author = ref.author[0];
+      return `${author.family} ${author.given} ${(10000-year)}`;
+    };
+    $scope.sortChange = function() {
+      $scope.sortorder = $scope[$scope.sortFunction];
+    };
+    $scope.sortFunction = 'yearSort';
+    $scope.sortChange();
+    $scope.reverse = false;
+    function removeAccents(value) {
+      return value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/-/)
+        .replace(/[æ]/g, 'ae').replace(/ß/g, 'ss')
+        .replace(/[₁¹]/g, '1').replace(/[₂²]/g, '2').replace(/[₃³]/g, '3').replace(/[₄⁴]/g, '4')
+        .replace(/⁻/g, '-').replace(/-/g, ' ');
+    }
+    $scope.ignoreAccents = function(item,expected) {
+      if (!expected) return true;
+      if (angular.isObject(item)) return false;
+      
+      item = removeAccents(item.toString().toLowerCase());
+      expected = removeAccents(expected.toString().toLowerCase());
+      return item.indexOf(expected) > -1;
+    };
+
+    $http.get('/data/ref.json',{})
+        .then(function(response) {
+            $scope.refs = response.data;
+        })
+        .catch(function(response) {
+            //console.log("Request failed " + response.status);
+        });
+  }
+]);

@@ -26,8 +26,7 @@ module.exports = function(grunt) {
         build: {
             files: {
                 'public/css/pco2.min.css' : [
-                    'public/css/bootstrap-custom.css',
-                    'node_modules/lightbox2/dist/css/lightbox.min.css'
+                    'public/css/bootstrap-custom.css'
                 ]
             }
         }
@@ -52,10 +51,8 @@ module.exports = function(grunt) {
       main: {
         files: [
           {expand: true, cwd:'bower_components/jquery/dist/',src: ['jquery.min.js'], dest: 'public/scripts/'},
-          {expand: true, cwd:'node_modules/lightbox2/dist/js/',src: ['lightbox.min.js'], dest: 'public/scripts/'},
           {expand: true, cwd:'node_modules/d3/dist/',src: ['d3.min.js'], dest: 'public/scripts/'},
-          {expand: true, cwd:'bower_components/bootstrap/fonts/',src: ['**'], dest: 'public/fonts/'},
-          {expand: true, cwd:'node_modules/lightbox2/dist/images/',src:['**'], dest: 'public/images/'}
+          {expand: true, cwd:'bower_components/bootstrap/fonts/',src: ['**'], dest: 'public/fonts/'}
         ]
       }
     },
@@ -90,6 +87,7 @@ module.exports = function(grunt) {
             'assets/pco2_site/routes.js',
             'assets/pco2_site/pco2App.js',
             'assets/pco2_site/pco2Controllers.js',
+            'assets/pco2_site/refService.js',
             'assets/pco2_site/navbar.js',
           ]
         }
