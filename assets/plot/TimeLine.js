@@ -1,6 +1,6 @@
 class TimeLine extends DynamicPlot {
-  constructor(parent,data_file,container_id,dimensions,legend=null) {
-    super(parent,data_file,container_id,dimensions,legend);
+  constructor(parent,dataObj,legend=null) {
+    super(parent,dataObj,legend);
     var self = this;
     this.tooltipDiv = d3.select("body").append("div")
       .attr("class", "tooltip")

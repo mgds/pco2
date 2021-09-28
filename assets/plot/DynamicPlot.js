@@ -1,27 +1,33 @@
+/**
+* The dynamic subplot class
+*/
 class DynamicPlot { // Container class for the dynamic subplot
 
-  constructor(parent,data_files,container_id,dimensions,legend) {
+  constructor(parent,dataObj,legend) {
     var self = this;
     this.data=[];
     this.brush=null;
     this.xLabelHtml="";
     this.yLabelHtml="";
     this.parent = parent;
-    this.initial_dimensions = dimensions;
+    this.domains = parent.domains;
+    this.expandCallback = parent.expandCallback;
+    this.collapseCallback = parent.collapseCallback;
+    this.expanded_dimensions = parent.plt.expanded;
+    this.initial_dimensions = dataObj.dimensions;
     this.dimensions = PlotUtils.deepCopy(this.initial_dimensions);
-    this.expanded_dimensions = parent.dims.expanded;
     this.legend = legend;
     this.linearScale = true;
     if (this.legend!==null) {
       this.legend.clickCallback = function(){self.redraw();};
     }
     this.content = parent.container.append("g")
-        .attr("id",container_id)
+        .attr("id",dataObj.container_id)
         .classed("dynamic_plot",true)
         .attr("transform",`translate(${this.dimensions.margins.left},${this.dimensions.margins.top})`);
     this.content.append("rect").classed("background",true)
         .attr("width",this.dimensions.width).attr("height",this.dimensions.height);
-    this.clip_id = `clip_${container_id}`;
+    this.clip_id = `clip_${dataObj.container_id}`;
     this.clip = this.parent.container.append("defs").append("svg:clipPath")
        .attr("id", this.clip_id)
        .append("svg:rect")
@@ -29,21 +35,21 @@ class DynamicPlot { // Container class for the dynamic subplot
        .attr("height", this.dimensions.height )
        .attr("x", 0)
        .attr("y", 0);
-    this.data_files = data_files;
+    this.data_files = dataObj.plotSrc;
   }
   expand() {
     this.dimensions = PlotUtils.deepCopy(this.expanded_dimensions);
     this.expButton.remove();
     this.resizePlot();
     this.collapseButton();
-    this.parent.expandCallback();
+    this.expandCallback();
   }
   collapse() {
     this.dimensions = PlotUtils.deepCopy(this.initial_dimensions);
     this.expButton.remove();
     this.resizePlot();
     this.expandButton();
-    this.parent.collapseCallback();
+    this.collapseCallback();
   }
   resizePlot() {
     this.content
@@ -116,8 +122,8 @@ class DynamicPlot { // Container class for the dynamic subplot
     d_x = d_x.sort((a, b) => a - b).reverse();
     var d_y = [this.y.invert(extent[0][1]),this.y.invert(extent[1][1])];
     d_y = d_y.sort((a, b) => a - b);
-    this.parent.domains.domainX( this.initial_dimensions.d_x, d_x );
-    this.parent.domains.domainY( this.initial_dimensions.d_y, d_y );
+    this.domains.domainX( this.initial_dimensions.d_x, d_x );
+    this.domains.domainY( this.initial_dimensions.d_y, d_y );
     this.content.select(".brush").call(this.brush.move, null);
     this.zoom();
   }
@@ -135,12 +141,12 @@ class DynamicPlot { // Container class for the dynamic subplot
         .call(this.brush);
   }
   zoom(runCallback=true) {
-    this.x.domain(this.parent.domains.domainX(this.dimensions.d_x));
+    this.x.domain(this.domains.domainX(this.dimensions.d_x));
     this.y.domain(this.yDomainScaled());
     this.zoomFunction(runCallback);
   }
   zoomX(runCallback=true) {
-    this.x.domain(this.parent.domains.domainX(this.dimensions.d_x));
+    this.x.domain(this.domains.domainX(this.dimensions.d_x));
     this.zoomFunction(runCallback);
   }
   zoomY(runCallback=true) {
@@ -148,7 +154,7 @@ class DynamicPlot { // Container class for the dynamic subplot
     this.zoomFunction(runCallback);
   }
   zoomed() { //Current domain not equal to initial domain
-    return this.parent.domains.zoomed(this.dimensions.d_x,this.dimensions.d_y,this.linearScale);
+    return this.domains.zoomed(this.dimensions.d_x,this.dimensions.d_y,this.linearScale);
   }
   zoomFunction(runCallback){
     var self = this;
@@ -160,8 +166,8 @@ class DynamicPlot { // Container class for the dynamic subplot
   zoomCallback(){//this.content.classed("zoomed",this.zoomed());
   }
   zoomOut(runCallback=true) { // Callback for double click
-    this.parent.domains.resetDomainX(this.dimensions.d_x);
-    this.parent.domains.resetDomainY(this.dimensions.d_y);
+    this.domains.resetDomainX(this.dimensions.d_x);
+    this.domains.resetDomainY(this.dimensions.d_y);
     this.zoom(runCallback);
   }
   draw() {}
@@ -183,7 +189,7 @@ class DynamicPlot { // Container class for the dynamic subplot
   }
   newXAxis() {
     this.x = d3.scaleLinear()
-        .domain(this.parent.domains.domainX(this.dimensions.d_x))
+        .domain(this.domains.domainX(this.dimensions.d_x))
         .range([0,this.dimensions.width]);
   }
   createYAxis() { // Creates the left and right axes
@@ -208,7 +214,7 @@ class DynamicPlot { // Container class for the dynamic subplot
         .range([this.dimensions.height, 0]);
   }
   yDomainScaled() {
-    var domain = this.parent.domains.domainY(this.dimensions.d_y);
+    var domain = this.domains.domainY(this.dimensions.d_y);
     domain[0] = (this.linearScale)?domain[0]:Math.max(domain[0],10);
     return domain;
   }
@@ -228,5 +234,14 @@ class DynamicPlot { // Container class for the dynamic subplot
     if (typeof opt != 'undefined') Object.entries(opt).forEach((v)=>{ options[v[0]]=v[1]; });
     if (options.ticks) axis.ticks(options.ticks);
     return axis.tickFormat((this.linearScale||options.formatLog == null)?options.format:options.formatLog);
+  }
+  addLabel(title,url,x,y,textAnchor='start') {
+    this.content.append("g")
+      .attr("transform",`translate(${x},${y})`)
+      .append("text").attr("class","reference").attr("text-anchor",textAnchor)
+      .text(title)
+      .on("click",function(d){
+        window.open(url,"_blank");
+      });
   }
 }

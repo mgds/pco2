@@ -1,6 +1,6 @@
 class LinePlot extends DynamicPlot {
-  constructor(parent,data_files,container_id,dimensions,legend=null) {
-    super(parent,data_files,container_id,dimensions,legend);
+  constructor(parent,dataObj,legend=null) {
+    super(parent,dataObj,legend);
     this.line = [];
   }
   draw() {
