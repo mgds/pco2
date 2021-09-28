@@ -5,7 +5,13 @@ class PlotUtils {
      for (var cd = destinationNode.childNodes.length - 1; cd >= 0; cd--) {
      //for (var cd = 0; destinationNode < destinationNode.childNodes.length; cd++) {
         var child = destinationNode.childNodes[cd];
-        if ( removeClass.some(function(r){return ((` ${child.className.baseVal} `).replace(/[\n\t]/g, " ").indexOf(` ${r} `) > -1 );}) ) {
+        let test_string = (` ${child.className.baseVal} `).replace(/[\n\t]/g, " ");
+        let class_test = false;
+        for (let i = 0; i<removeClass.length && !class_test; i++) {
+          if (test_string.indexOf(` ${removeClass[i]} `) > -1)
+            class_test = true;
+        }
+        if (class_test) {
           child.remove();
           continue;
         }

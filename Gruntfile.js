@@ -10,7 +10,7 @@ module.exports = function(grunt) {
           yuicompress: true,
           optimization: 2,
           modifyVars: {
-            bsroot: '"../../bower_components/bootstrap/less"'
+            bsroot: '"../../node_modules/bootstrap/less"'
           }
         },
         files: {
@@ -31,28 +31,10 @@ module.exports = function(grunt) {
             }
         }
     },
-    //Run bower install after npm install to update/install all front-end components
-    "bower-install-simple" : {
-        options: {
-            forceLatest: true
-        },
-        "prod": {
-            options: {
-                production: true
-            }
-        },
-        "dev": {
-            options: {
-                production: false
-            }
-        }
-    },
     copy : {
       main: {
         files: [
-          {expand: true, cwd:'bower_components/jquery/dist/',src: ['jquery.min.js'], dest: 'public/scripts/'},
-          {expand: true, cwd:'node_modules/d3/dist/',src: ['d3.min.js'], dest: 'public/scripts/'},
-          {expand: true, cwd:'bower_components/bootstrap/fonts/',src: ['**'], dest: 'public/fonts/'}
+          {expand: true, cwd:'node_modules/bootstrap/fonts/',src: ['**'], dest: 'public/fonts/'}
         ]
       }
     },
@@ -61,49 +43,33 @@ module.exports = function(grunt) {
       angular: {
         files: {
           'public/scripts/angular-all.min.js': [
-              'bower_components/angular/angular.min.js',
-              'bower_components/angular-animate/angular-animate.min.js',
-              'bower_components/angular-cookies/angular-cookies.min.js',
-              'bower_components/angular-loader/angular-loader.min.js',
-              'bower_components/angular-messages/angular-messages.min.js',
-              'bower_components/angular-resource/angular-resource.min.js',
-              'bower_components/angular-route/angular-route.min.js',
-              'bower_components/angular-sanitize/angular-sanitize.min.js',
-              'bower_components/angular-modal-service/dst/angular-modal-service.min.js'
-          ]
-        }
-      },
-      bootstrap: {
-        files: {
-          'public/scripts/bootstrap-all.min.js' : [
-            'bower_components/bootstrap/dist/js/bootstrap.min.js'
+              'node_modules/angular/angular.min.js',
+              'node_modules/angular-animate/angular-animate.min.js',
+              'node_modules/angular-cookies/angular-cookies.min.js',
+              'node_modules/angular-loader/angular-loader.min.js',
+              'node_modules/angular-messages/angular-messages.min.js',
+              'node_modules/angular-resource/angular-resource.min.js',
+              'node_modules/angular-route/angular-route.min.js',
+              'node_modules/angular-sanitize/angular-sanitize.min.js',
+              'node_modules/angular-modal-service/dst/angular-modal-service.min.js'
           ]
         }
       },
       pco2_site: {
         files: {
           'public/scripts/pco2.js' : [
-            'assets/pco2_site/config.js',
             'assets/pco2_site/routes.js',
+            'assets/pco2_site/config.js',
             'assets/pco2_site/pco2App.js',
             'assets/pco2_site/pco2Controllers.js',
             'assets/pco2_site/refService.js',
-            'assets/pco2_site/navbar.js',
+            'assets/pco2_site/navbar.js'
           ]
         }
       },
       plot_logic: {
         files: {
-          'public/scripts/ageCO2Plot.js' : [
-            'assets/plot/PlotUtils.js',
-            'assets/plot/Legend.js',
-            'assets/plot/DomainControl.js',
-            'assets/plot/DynamicPlot.js',
-            'assets/plot/ScatterPlot.js',
-            'assets/plot/LinePlot.js',
-            'assets/plot/TimeLine.js',
-            'assets/plot/PCO2Plot.js',
-          ]
+          'public/scripts/ageCO2Plot.js' : [ 'assets/plot/PlotGroup.js','assets/plot/*.js' ]
         }
       }
     }
@@ -113,10 +79,8 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-cssmin');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks("grunt-bower-install-simple");
 
-  grunt.registerTask('default', ['bower-install-simple:dev','copy:main','concat','less:development','cssmin']);
-  grunt.registerTask('noWatch', ['bower-install-simple:dev','copy:main','concat','less:development','cssmin']);
+  grunt.registerTask('default', ['copy:main','concat','less:development','cssmin']);
+  grunt.registerTask('noWatch', ['copy:main','concat','less:development','cssmin']);
   grunt.registerTask("myLess", ['less:development']);
-  grunt.registerTask("bower-install", [ "bower-install-simple" ]);
 };

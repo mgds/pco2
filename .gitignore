@@ -5,5 +5,7 @@
 /public/css/pco2.min.css
 /public/scripts
 /public/fonts
+/ansible
+/public/data
 **/.DS_Store
 config.env

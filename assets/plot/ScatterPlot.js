@@ -1,10 +1,12 @@
 class ScatterPlot extends DynamicPlot { // Container class for the dynamic subplot
-  constructor(parent,data_files,container_id,dimensions,legend=null) {
-    super(parent,data_files,container_id,dimensions,legend);
+  constructor(parent,dataObj,legend=null) {
+    super(parent,dataObj,legend);
+    this.classAxis = dataObj.classAxis;
     this.showBars = true;
   }
   showUncertainties(show){
     this.showBars = show;
+    console.log(this);
     this.redraw();
   }
   // Drawing
@@ -20,7 +22,7 @@ class ScatterPlot extends DynamicPlot { // Container class for the dynamic subpl
       .data(this.data[0])
       .enter()
       .append("g")
-      .attr("class",function(d){return `data_bars ${self.parent.class_axis[d.pr]}${((d.x<=d_x[0] && d.x>=d_x[1] && d.y<=d_y[1] && d.y>=d_y[0])?'':" hidden")}`;});
+      .attr("class",function(d){return `data_bars ${self.classAxis[d.pr]}${((d.x<=d_x[0] && d.x>=d_x[1] && d.y<=d_y[1] && d.y>=d_y[0])?'':" hidden")}`;});
     this.barsGroup.append("line").attr("class","xstd") //x_uncertainty
       .attr("x1", function (d) {return self.x((d.x+d.x_sdh),self.x);})
       .attr("x2", function (d) {return self.x((d.x-d.x_sdl),self.x);} )
@@ -35,7 +37,7 @@ class ScatterPlot extends DynamicPlot { // Container class for the dynamic subpl
       .data(this.data[0])
       .enter()
       .append("circle")
-      .attr("class",function(d){return `${self.parent.class_axis[d.pr]}${((d.x<=d_x[0] && d.x>=d_x[1] && d.y<=d_y[1] && d.y>=d_y[0])?'':" hidden")}`;})
+      .attr("class",function(d){return `${self.classAxis[d.pr]}${((d.x<=d_x[0] && d.x>=d_x[1] && d.y<=d_y[1] && d.y>=d_y[0])?'':" hidden")}`;})
       .attr("cx", function (d) {return self.x(d.x);} ) // File values are in kiloyears but axis is in millions of years
       .attr("cy", function (d) {return self.y(Math.max(d.y,1));} )
       .attr("r",1.5);
@@ -49,11 +51,11 @@ class ScatterPlot extends DynamicPlot { // Container class for the dynamic subpl
     var d_x = self.x.domain();
     var d_y = self.y.domain();
     this.pointGroup
-      .attr("class",function(d){return `${self.parent.class_axis[d.pr]}${((self.legend.entries[d.pr].draw && (d.x<=d_x[0] && d.x>=d_x[1] && d.y<=d_y[1] && d.y>=d_y[0]))?"":" hidden")}`;})
+      .attr("class",function(d){return `${self.classAxis[d.pr]}${((self.legend.entries[d.pr].draw && (d.x<=d_x[0] && d.x>=d_x[1] && d.y<=d_y[1] && d.y>=d_y[0]))?"":" hidden")}`;})
       .transition().duration(1000)
       .attr("cx", function (d) { return self.x(d.x); } )
       .attr("cy", function (d) {return self.y(Math.max(d.y,1));} );
-    this.barsGroup.attr("class",function(d){return `data_bars ${self.parent.class_axis[d.pr]}${((self.showBars && self.legend.entries[d.pr].draw && (d.x<=d_x[0] && d.x>=d_x[1] && d.y<=d_y[1] && d.y>=d_y[0]))?"":" hidden")}`;});
+    this.barsGroup.attr("class",function(d){return `data_bars ${self.classAxis[d.pr]}${((self.showBars && self.legend.entries[d.pr].draw && (d.x<=d_x[0] && d.x>=d_x[1] && d.y<=d_y[1] && d.y>=d_y[0]))?"":" hidden")}`;});
     this.barsGroup.selectAll(".xstd")
       .transition().duration(1000)
       .attr("x1", function (d) {return self.x((d.x+d.x_sdh),self.x);})

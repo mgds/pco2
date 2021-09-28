@@ -1,5 +1,6 @@
 @plot_color: #396aa8;
 @plot_color_inactive: #b4cae5;
+@plot_color_quarantined: #808080;
 @plot_color_phytoplankton: #890903;
 @plot_color_boron: #CC5304;
 @plot_color_stomatal: #D38F08;
@@ -15,6 +16,29 @@
   color: black;
   border: 0px;
   pointer-events: none;
+}
+.tooltip_sankey {
+  position: absolute;
+  font: 400 13px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  padding: 5px;
+  width: 400px;
+  background-color: white;
+  color: black;
+  border: 0px;
+  pointer-events: none;
+  .nameval {
+    display: flex;
+    flex-direction: row;
+    .name {
+      flex: 0 0 100px;
+      text-align: right;
+      padding-right: 5px;
+      font-weight: bold;
+    }
+    .value {
+      flex: 1;
+    }
+  }
 }
 #container_svg {
   .background {
@@ -169,7 +193,8 @@
       font-weight: bold;
     }
   }
-  circle {
+  circle, rect {
+    &.quarantined {fill:@plot_color_quarantined}
     &.phytoplankton {fill:@plot_color_phytoplankton}
     &.boron {fill:@plot_color_boron}
     &.stomatal {fill:@plot_color_stomatal}
@@ -178,5 +203,16 @@
     &.c3plants {fill:@plot_color_c3plants}
     &.paleosols {fill:@plot_color_paleosols}
     &.nahcolite {fill:@plot_color_nahcolite}
+  }
+  path {
+    &.quarantined {stroke:@plot_color_quarantined}
+    &.phytoplankton {stroke:@plot_color_phytoplankton}
+    &.boron {stroke:@plot_color_boron}
+    &.stomatal {stroke:@plot_color_stomatal}
+    &.leafgas {stroke:@plot_color_leafgas}
+    &.liverworts {stroke:@plot_color_liverworts}
+    &.c3plants {stroke:@plot_color_c3plants}
+    &.paleosols {stroke:@plot_color_paleosols}
+    &.nahcolite {stroke:@plot_color_nahcolite}
   }
 }

@@ -1,14 +1,13 @@
 class Legend { // A class for the legend, which inherits a container structure
   constructor(parent,dimensions) {
     var self = this;
-    this.parent = parent;
     this.dimensions = dimensions;
-    this.content = this.parent.container.append("g")
+    this.content = parent.container.append("g")
       .attr("id","legend_container")
       .attr("transform",`translate(${dimensions.margins.left},${dimensions.margins.top})`);
     this.entries = {}; this.entry_array = [];
-    for (var name in this.parent.class_axis) {
-      this.entry_array.push({"name":name,"class":this.parent.class_axis[name],"draw":true});
+    for (var name in parent.class_axis) {
+      this.entry_array.push({"name":name,"class":parent.class_axis[name],"draw":true});
     }
     this.entry_array.forEach(function(d,i){self.entries[d.name]=self.entry_array[i];});
     this.spacing = 16; // Manually defined
