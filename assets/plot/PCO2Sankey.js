@@ -58,19 +58,22 @@ class PCO2Sankey extends PlotGroup {
   generatePlot() {
     this.createLogo();
     this.plotcontent = this.container.append("g")
-        .attr("id","sankey_plot")
+        .attr("id","sankey_plotcontent")
         .classed("dynamic_plot",true)
         .attr("transform",`translate(${this.left},${this.top})`);
-    this.plotcontent.append("rect").classed("background",true)
-        .attr("width",this.width).attr("height",this.height);
+    this.plotcontent.append("rect")
+      .classed("background",true)
+      .attr("width",this.width)
+      .attr("height",this.height);
     this.clip_id = `clip_sankey`;
-    this.clip = this.container.append("defs").append("svg:clipPath")
-       .attr("id", this.clip_id)
-       .append("svg:rect")
-       .attr("width", this.width )
-       .attr("height", this.height )
-       .attr("x", 0)
-       .attr("y", 0);
+    this.clip = this.container.append("defs")
+      .append("svg:clipPath")
+        .attr("id", this.clip_id)
+        .append("svg:rect")
+          .attr("width", this.width )
+          .attr("height", this.height )
+          .attr("x", 0)
+          .attr("y", 0);
     this.addData();
   }
   createLogo() { // Creates the logo as a data URL
@@ -191,20 +194,38 @@ class PCO2Sankey extends PlotGroup {
     var x1Right = this.plotWidth - this.padH - this.containerWidth;
     //const {nodes, links} = sankey(data);
     this.plotcontent.selectAll("*").remove();
-    this.plotcontent.append("g")
-      .selectAll("rect")
-      .data(self.rNodes.filter(d => d.numSource > 0))
+    var pts = this.plotcontent.append("g")
+      .attr("id", "sankey_plot_main")
+      .selectAll("g")
+      .data(self.rNodes)
       .enter()
-      .append("rect")
-        .attr("x", x1Left)
-        .attr("y", d => d.source.y1)
-        .attr("height", d => d.source.y2 - d.source.y1)
-        .attr("width", self.containerWidth)
-        .attr("stroke", "#000")
-        .attr("stroke-width", 0.5)
-        .attr("fill", d => self.colors[d.proxy].color)
-        .attr("opacity", 0.8)
-        .on("click", function(d) {
+      .append("g")
+      .on("click", function(d) {
+        if (self.proxy) {
+          self.proxy = null;
+        } else {
+          self.proxy = d.proxy;
+        }
+        self.setData(self.data[0], self.proxy);
+        self.draw();
+      })
+      .on("mouseover", function(d) {
+        var rect = d3.select(this).select(".source_rect").node().getBoundingClientRect();
+        d3.select(this).selectAll(".sankey_rect").transition().duration(400).attr("opacity",1);
+        d3.select(this).selectAll(".sankey_link").transition().duration(400).attr("stroke-opacity",0.5);
+        self.tooltipDiv.transition().duration(200).style("opacity", 0.9);
+        self.tooltipDiv.html(self.tooltipText(d))
+          .style("left", (rect.right + 5 + window.scrollX) + "px")
+          .style("top", (rect.top + window.scrollY) + "px");
+      })
+      .on("mouseout", function(d) {
+        d3.select(this).selectAll(".sankey_rect").transition().duration(200).attr("opacity",0.8);
+        d3.select(this).selectAll(".sankey_link").transition().duration(200).attr("stroke-opacity",0.35);
+        self.tooltipDiv.transition().duration(500).style("opacity", 0);
+        self.tooltipDiv.html('');
+      })
+      .on("click", function(d) {
+        if (d.numSource > 0) {
           if (self.proxy) {
             self.proxy = null;
           } else {
@@ -212,47 +233,55 @@ class PCO2Sankey extends PlotGroup {
           }
           self.setData(self.data[0], self.proxy);
           self.draw();
-        })
-        .on("mouseover", function(d) {
-          var rect = d3.select(this).node().getBoundingClientRect();
-          d3.select(this).transition().duration(400).attr("opacity",1);
-          self.tooltipDiv.transition().duration(200).style("opacity", 0.9);
-          self.tooltipDiv.html(self.tooltipText(d))
-            .style("left", (rect.right + 5) + "px")
-            .style("top", (rect.top + window.scrollY) + "px");
-        })
-        .on("mouseout", function(d) {
-            d3.select(this).transition().duration(200).attr("opacity",0.8);
-            self.tooltipDiv.transition().duration(500).style("opacity", 0);
-            self.tooltipDiv.html('');
-        });
+        }
+      });
 
-    this.plotcontent.append("g")
-      .selectAll("rect")
-      .data(self.rNodes.filter(d => d.numTarget > 0))
-      .enter()
+    pts.filter(d => d.numSource > 0)
       .append("rect")
+      .classed("sankey_rect source_rect", true)
+      .attr("x", x1Left)
+      .attr("y", d => d.source.y1)
+      .attr("height", d => d.source.y2 - d.source.y1)
+      .attr("width", self.containerWidth)
+      .attr("fill", d => self.colors[d.proxy].color)
+      .attr("opacity", "0.8")
+
+
+    pts.filter(d => d.numSource > 0)
+      .append("text")
+        .attr("x", x1Left - 4 )
+        .attr("y", d => (d.source.y2 + d.source.y1) / 2)
+        .attr("dy", "0.35em")
+        .attr("text-anchor", "end")
+        .text(d => d.name);
+
+    pts.filter(d => d.numTarget > 0)
+      .append("rect")
+        .classed("sankey_rect", true)
         .attr("x", x1Right)
         .attr("y", d => d.target.y1)
         .attr("height", d => d.target.y2 - d.target.y1)
         .attr("width", self.containerWidth)
-        .attr("stroke", "#000")
-        .attr("stroke-width", 0.5)
         .attr("fill", d => self.colors[d.proxy].color)
+        .attr("opacity", "0.8")
       .append("title")
         .text(d => `${d.name}\n`);
 
-    const linkQ = this.plotcontent.append("g")
-        .attr("fill", "none")
-        .attr("stroke-opacity", 0.35)
-      .selectAll("g")
-      .data(self.rNodes.filter(d => d.source.qHeight > 0))
-      .enter()
-      .append("g")
-        .style("mix-blend-mode", "multiply");
+    pts.filter(d => d.numSource == 0)
+      .append("text")
+        .attr("x", x1Right + self.containerWidth / 2 )
+        .attr("y", d => d.target.y1 + 8 )
+        .attr("dy", "0.35em")
+        .attr("text-anchor", "middle")
+        .text(d => d.name);
 
-    const gradient = linkQ.append("linearGradient")
-        .attr("id", d => d.id+"Q")
+    var linkQ = pts.filter(d => d.source.qHeight > 0)
+      .append("g")
+        .classed("sankey_link", true)
+        .attr("stroke-opacity", 0.35);
+
+    var gradient = linkQ.append("linearGradient")
+        .attr("id", d => d.id.replace(" ","_")+"Q")
         .attr("gradientUnits", "userSpaceOnUse")
         .attr("x1", x2Left)
         .attr("x2", x1Right);
@@ -267,46 +296,18 @@ class PCO2Sankey extends PlotGroup {
 
     linkQ.append("path")
         .attr("d", d3.linkHorizontal().source(d => [x2Left, d.source.y1 + d.source.qHeight / 2]).target(d => [x1Right, self.padV + d.source.qy + d.source.qHeight / 2]))
-        .attr("stroke", d => `url(#${d.id}Q)`)
+        .attr("stroke", d => `url(#${d.id.replace(" ","_")}Q)`)
         .attr("stroke-width", d => d.source.qHeight == 0 ? 0 : Math.max(0.5, d.source.qHeight));
 
-    const link = this.plotcontent.append("g")
-        .attr("fill", "none")
-        .attr("stroke-opacity", 0.35)
-      .selectAll("g")
-      .data(self.rNodes.filter(d => d.numSource > 0 && d.numTarget > 0))
-      .enter()
+    const link = pts.filter(d => d.numSource > 0 && d.numTarget > 0)
       .append("g")
-        .style("mix-blend-mode", "multiply");
+        .classed("sankey_link", true)
+        .attr("stroke-opacity", 0.35);
 
     link.append("path")
         .attr("d", d3.linkHorizontal().source(d => [x2Left, (d.source.y2 + d.source.y1 +d.source.qHeight)/2]).target(d => [x1Right, (d.target.y1 + d.target.y2)/2]))
         .attr("stroke", d => self.colors[d.proxy].color)
         .attr("stroke-width", d => d.numTarget == d.numQuarantined ? 0 : Math.max(0.5, d.source.y2 - d.source.y1 - d.source.qHeight));
-    this.plotcontent.append("g")
-        .attr("font-family", "sans-serif")
-        .attr("font-size", 6)
-      .selectAll("text")
-      .data(self.rNodes.filter(d => d.numSource > 0))
-      .enter()
-      .append("text")
-        .attr("x", x1Left - 4 )
-        .attr("y", d => (d.source.y2 + d.source.y1) / 2)
-        .attr("dy", "0.35em")
-        .attr("text-anchor", "end")
-        .text(d => d.name);
-    this.plotcontent.append("g")
-        .attr("font-family", "sans-serif")
-        .attr("font-size", 6)
-      .selectAll("text")
-      .data(self.rNodes.filter(d => d.numSource == 0))
-      .enter()
-      .append("text")
-        .attr("x", x1Right + self.containerWidth / 2 )
-        .attr("y", d => d.target.y1 + 8 )
-        .attr("dy", "0.35em")
-        .attr("text-anchor", "middle")
-        .text(d => d.name);
   }
 
   tooltipText(dRow) {

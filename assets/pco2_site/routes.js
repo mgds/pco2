@@ -1,6 +1,7 @@
 var routes = {
   '/': { templateUrl: 'inc/index_inc.html', controller: 'indexView' },
   '/about': { templateUrl: 'inc/about_inc.html', controller: 'aboutView' },
+  '/co2pip': { templateUrl: 'inc/co2pip_inc.html', controller: 'aboutView' },
   '/map': { templateUrl: 'inc/map_inc.html', controller: 'aboutView' },
   '/dataProxies': { templateUrl: 'inc/dataProxies_inc.html', controller: 'aboutView' },
   '/proxiesPhytoplankton': { templateUrl: 'inc/phytoplankton_inc.html', controller: 'aboutView' },
