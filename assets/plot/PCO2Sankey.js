@@ -24,7 +24,7 @@ class PCO2Sankey extends PlotGroup {
       "Stomatal Frequencies": {"color": "#D38F08", "class": "stomatal"},
       "Leaf Gas Exchange": {"color": "#3B9001", "class": "leafgas"},
       "Liverworts": {"color": "#028492", "class": "liverworts"},
-      "C3 Plants": {"color": "#394B9F", "class": "c3plants"},
+      "Land Plant 𝛿¹³C": {"color": "#394B9F", "class": "c3plants"},
       "Paleosols": {"color": "#7424A7", "class": "paleosols"},
       "Nahcolite": {"color": "#3D0F5A", "class": "nahcolite"}
     };
