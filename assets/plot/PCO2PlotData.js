@@ -37,7 +37,7 @@ class PCO2PlotData {
         "Stomatal Frequencies":"stomatal",
         "Leaf Gas Exchange":"leafgas",
         "Liverworts":"liverworts",
-        "C3 Plants":"c3plants",
+        "Land Plant 𝛿¹³C":"c3plants",
         "Paleosols":"paleosols",
         "Nahcolite":"nahcolite"
       },
