@@ -3,16 +3,21 @@
 <head>
 	<title>Paleo CO₂</title>
 	<meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta charset="utf-8">
-  <base href="/">
-  <link rel="stylesheet" href="/css/pco2.min.css" />
-  <link href="https://fonts.googleapis.com/css?family=Oswald&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
-  <script type="text/javascript" src="/scripts/angular-all.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.16.0/d3.min.js" integrity="sha512-FHsFVKQ/T1KWJDGSbrUhTJyS1ph3eRrxI228ND0EGaEp6v4a/vGwPWd3Dtd/+9cI7ccofZvl/wulICEurHN1pg==" crossorigin="anonymous"></script>
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="utf-8">
+	<base href="/">
+	<link rel="stylesheet" href="/css/pco2.min.css" />
+	<link href="https://fonts.googleapis.com/css?family=Oswald&display=swap" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/themes/base/jquery-ui.min.css" integrity="sha512-ELV+xyi8IhEApPS/pSj66+Jiw+sOT1Mqkzlh8ExXihe4zfqbWkxPRi8wptXIO9g73FSlhmquFlUOuMSoXz5IRw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@6.11.0/css/flag-icons.min.css">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js" integrity="sha512-57oZ/vW8ANMjR/KQ6Be9v/+/h6bq9/l3f0Oc7vn6qMqyhvPd1cvKBRWWpzu0QoneImqr2SkmO4MSqU+RpHom3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha512-iztkobsvnjKfAtTNdHkGVjAYTrrtlC7mGp/54c40wowO7LhURYl3gVzzcEqGl/qKXQltJ2HwMrdLcNUdo+N/RQ==" crossorigin="anonymous"></script>
+	<script type="text/javascript" src="/scripts/angular-all.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-csv/1.0.21/jquery.csv.min.js" integrity="sha512-Y8iWYJDo6HiTo5xtml1g4QqHtl/PO1w+dmUpQfQSOTqKNsMhExfyPN2ncNAe9JuJUSKzwK/b6oaNPop4MXzkwg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&v=weekly"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/5.16.0/d3.min.js" integrity="sha512-FHsFVKQ/T1KWJDGSbrUhTJyS1ph3eRrxI228ND0EGaEp6v4a/vGwPWd3Dtd/+9cI7ccofZvl/wulICEurHN1pg==" crossorigin="anonymous"></script>
 	<script type="text/javascript" src="/scripts/pco2.js"></script>
 	<script type="text/javascript" src="/scripts/ageCO2Plot.js"></script>
 	<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -124,7 +129,7 @@
                   <a href="" class="dropdown-toggle" data-toggle="dropdown" role="button" style="font-style:italic;">ABOUT<span class="caret"></span></a>
                   <ul class="dropdown-menu">
                     <li><a href="/about">Overview</a></li>
-                    <li><a href="/experts">Experts</a></li>
+                    <li><a href="/people">People</a></li>
                   </ul>
                 </li>
 								<li><a href="/co2pip">PHANEROZOIC</a></li>
@@ -140,18 +145,37 @@
         <div class="container" style="padding-top:10px;padding-bottom:10px">
             <div class="row">
                 <div class="col-md-2 hidden-xs hidden-sm"><img src="images/paleo-CO2.png" style="width:100%"/></div>
-            <div class="col-md-6 text-left">
-                <div style="font-size:1.1em;"><a style="color:white;" href="https://www.youtube.com/channel/UCIl8gtRKYn-gQHwmylr15SQ"><i class="fab fa-youtube-square"></i></a> <a style="color:white;" href="https://twitter.com/Co2Paleo"><i class="fab fa-twitter-square"></i></a><br>
-                    <a style="color:white;font-weight:700;" href="mailto:info@paleo-co2.org">info@paleo-co2.org</a><br>
-                    <a style="color:white;font-weight:700;" href="/privacy">Privacy Policy</a><br>
-                    <small>
+            <div class="col-md-8 text-left">
+                <div style="font-size:1.1em;">
+					<div class="clearfix">
+						<div style="float:right;">
+							<a style="color:white;font-weight:500;font-size:small;" href="/privacy">Privacy Policy</a>
+							<span style="padding:0 5px 0 5px">|</span>
+							<a style="color:white;" href="https://www.youtube.com/channel/UCIl8gtRKYn-gQHwmylr15SQ"><i style="font-size:1.6em;margin-right:5px;vertical-align: sub;" class="fab fa-youtube-square"></i></a>
+							<a style="color:white;" href="https://www.linkedin.com/company/paleo-co2/"><i style="font-size:1.6em;margin-right:5px;vertical-align: sub;" class="fab fa-linkedin"></i></a>
+							<a style="color:white;font-weight:700;border-bottom:none;" href="mailto:info@paleo-co2.org" title="info@paleo-co2.org"><i style="font-size:1.6em;margin-right:5px;vertical-align: sub;" class="fas fa-envelope-square"></i></a>
+						</div>
+						<div style="float:left">
+							paleo-CO<sub>2</sub>.org
+						</div>
+					</div>
+					<hr style="margin:5px 0 5px 0;">
+                    <div class="row">
+						<div class="col-md-12" style="font-size:small;">
                         Copyright &copy; <script type="text/javascript">document.write( new Date().getFullYear() );</script> Lamont-Doherty Earth Observatory of Columbia University.<br>
-                        All Rights Reserved. Funded by the Heising-Simons Foundation
-                    </small>
+                        All Rights Reserved. Funded by the Heising-Simons Foundation and the National Science Foundation.
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-12" style="margin-top:10px;">
+							<img src="images/nsf-logo.png" style="height:60px"/><img src="images/heising.png" style="height:50px"/>
+						</div>
+					</div>
                 </div>
             </div>
-                <div class="col-md-4 text-right"><br><img src="images/heising.png" style="width:100%"/></div>
-            </div>
+			<div class="col-md-2 hidden-xs hidden-sm">
+				<img src="images/co2pip_logo_full.png" style="width:100%"/>
+			</div>
         </div>
     </div>
 </div>

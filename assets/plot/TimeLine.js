@@ -2,6 +2,7 @@ class TimeLine extends DynamicPlot {
   constructor(parent,dataObj,legend=null) {
     super(parent,dataObj,legend);
     var self = this;
+    this.noclick = dataObj["noclick"];
     this.tooltipDiv = d3.select("body").append("div")
       .attr("class", "tooltip")
       .style("opacity", 0);
@@ -27,6 +28,14 @@ class TimeLine extends DynamicPlot {
     this.parent.domains.resetDomainX(this.dimensions.d_x);
     this.zoom(runCallback);
   }
+  clickfunction(d) {
+    var self = this;
+    if (self.parent.domains.domainX(self.dimensions.d_x)[0]==d.x2&&self.parent.domains.domainX(self.dimensions.d_x)[1]==d.x1)
+        self.parent.domains.resetDomainX(self.dimensions.d_x);
+    else
+        self.parent.domains.domainX(self.dimensions.d_x,[d.x2,d.x1] );
+    self.zoom();
+  }
   draw() {
     var self = this;
     var stroke = 0.7;
@@ -41,16 +50,14 @@ class TimeLine extends DynamicPlot {
         .attr("width",function (d) {return self.x(d.x1)-self.x(d.x2);})
         .attr("height",this.dimensions.height)
         .on("click",function(d){
-          if (self.parent.domains.domainX(self.dimensions.d_x)[0]==d.x2&&self.parent.domains.domainX(self.dimensions.d_x)[1]==d.x1)
-              self.parent.domains.resetDomainX(self.dimensions.d_x);
-          else
-              self.parent.domains.domainX(self.dimensions.d_x,[d.x2,d.x1] );
-          self.zoom();
+          if (! self.noclick)
+            self.clickfunction(d);
         })
         .on("mouseover", function(d) {
               d3.select(this).select(".tlcolor").transition().duration(400).attr("opacity",1);
               self.tooltipDiv.transition().duration(200).style("opacity", 0.9);
-              self.tooltipDiv.html('click to zoom').style("left", (d3.event.pageX) + "px").style("top", (d3.event.pageY-30) + "px");
+              if (! self.noclick)
+                self.tooltipDiv.html('click to zoom').style("left", (d3.event.pageX) + "px").style("top", (d3.event.pageY-30) + "px");
         })
         .on("mouseout", function(d) {
             d3.select(this).select(".tlcolor").transition().duration(200).attr("opacity",0);

@@ -7,5 +7,6 @@
 /public/fonts
 /ansible
 /public/data
+/old
 **/.DS_Store
 config.env

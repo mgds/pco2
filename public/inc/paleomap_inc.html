@@ -1,0 +1,240 @@
+<script type="text/javascript">
+var current_age= "30";
+var historicalOverlays = {};
+function change_age(age) {
+  $("#agevalue").text(age.toString() + " Ma");
+  updateLine(age);
+  //console.log(age);
+  //console.log(age in historicalOverlays);
+  if (!(age in historicalOverlays)) {
+      //console.log(`/data/paleo/raster_Map1a PALEOMAP PaleoAtlas_${age}.00Ma.jpeg`);
+      historicalOverlays[age] = new google.maps.GroundOverlay(
+          `/data/paleo/raster_Map1a PALEOMAP PaleoAtlas_${age}.00Ma.jpeg`,
+          {north: 90, south: -90, east: 180, west: -180},
+          {clickable: false}
+      );
+  }
+  if (current_age in historicalOverlays && current_age !== age) {
+      historicalOverlays[current_age].setMap(null);
+  }
+  historicalOverlays[age].setMap(map);
+  map.data.forEach(function(feature) {
+      map.data.remove(feature);
+  });
+  map.data.loadGeoJson(`/data/paleo/reconstructed_${age}.00Ma.geojson`);
+  current_age = age;
+  map.data.setStyle((feature) => {
+  let color = "gray";
+  proxy_colors = {
+      "Phytoplankton":"#890903",
+      "Boron Proxies":"#CC5304",
+      "Stomatal Frequencies":"#D38F08",
+      "Leaf Gas Exchange":"#3B9001",
+      "Liverworts":"#028492",
+      "Land Plant 𝛿¹³C":"#394B9F",
+      "Paleosols":"#7424A7",
+      "Nahcolite":"#3D0F5A"
+  };
+  if (feature.getProperty("proxy")) {
+    color = proxy_colors[feature.getProperty("proxy")];
+  }
+  return /** @type {!google.maps.Data.StyleOptions} */ {
+      icon: {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 3,
+      strokeColor: "#ffffff",
+      strokeWeight: 0.5,
+      strokeOpacity: 0.5,
+      fillColor: color,
+      fillOpacity:1.0
+      }
+  };
+});
+}
+
+function initMap() {
+  const emptyMapType = new google.maps.ImageMapType({
+    getTileUrl: function (coord, zoom) {
+      return (
+        "/images/256x256-ffffffff.png"
+      );
+    },
+    tileSize: new google.maps.Size(256, 256),
+    maxZoom: 2,
+    minZoom: 2,
+    name: "empty",
+  });
+  map = new google.maps.Map(document.getElementById("paleomap"), {
+    center: { lat: 0, lng: 0 },
+    mapTypeControl: false,
+    streetViewControl: false,
+    zoomControl: false,
+    fullscreenControl: false,
+    restriction: {
+      latLngBounds: {north: 85, south: -85, east: 165, west: -180},
+      strictBounds: false,
+    },
+    zoom: 2,
+    maxZoom: 2,
+    minZoom: 2
+  });
+  map.mapTypes.set("empty", emptyMapType);
+  map.setMapTypeId("empty");
+
+  var infowin = new google.maps.InfoWindow();
+  google.maps.event.addListener(infowin, 'closeclick', function(event) {
+    marker.setMap(null);
+  });
+  marker = new google.maps.Marker();
+  var logoControlDiv = document.createElement('DIV');
+  var logoControl = new MyLogoControl(logoControlDiv);
+  logoControlDiv.index = 0; // used for ordering
+  map.controls[google.maps.ControlPosition.LEFT_TOP].push(logoControlDiv);
+
+  var copyrightDiv = document.createElement("div");
+  copyrightDiv.id = "map-copyright";
+  copyrightDiv.style.fontSize = "11px";
+  copyrightDiv.style.fontFamily = "Arial, sans-serif";
+  //copyrightDiv.style.margin = "0 2px 2px 0";
+  copyrightDiv.style.padding = "0 4px 0 4px";
+  copyrightDiv.style.whiteSpace = "nowrap";
+  copyrightDiv.style.backgroundColor = "#ffffffaa"
+  copyrightDiv.innerHTML = "Paleogeography and model from <a href='https://www.earthbyte.org/paleomap-paleoatlas-for-gplates/'>Scotese, C.R., 2016</a>";
+  map.controls[google.maps.ControlPosition.BOTTOM_RIGHT].push(copyrightDiv);
+
+  change_age("0");
+  $( "#age" ).slider({
+    orientation: "horizontal",
+    range: "min",
+    max: 65,
+    value: 65,
+    stop: refreshSwatch
+  });
+  function refreshSwatch() {
+    var age = 65 - parseInt($( "#age" ).slider( "value" ));
+    change_age(age.toString());
+  }
+  function MyLogoControl(controlDiv) {
+      controlDiv.style.padding = '5px';
+      var logo = document.createElement('IMG');
+      logo.src = 'images/paleo-CO2.png';
+      logo.style.cursor = 'pointer';
+      logo.style.width = "80px";
+      controlDiv.appendChild(logo);
+  }
+  //google.maps.event.addListener(map, 'click', function(event) {
+  //  selectPoint(event.latLng);
+  //});
+  //"site_name": "Fort Union", 
+  //"proxy": "Stomatal Frequencies", 
+  //"co2_ppm": 325.0, 
+  //"age_ma": "56.232", 
+  //"references": "Barclay, R.S. and Wing, S.L., 2016. Improving the Ginkgo CO2 barometer: Implications for the early Cenozoic atmosphere. Earth and Planetary Science Letters, 439, pp.158-171.", "xls": "stomata-si_barclay_2016.xlsx"
+  google.maps.event.addListener(infowin, 'closeclick', function(event) {
+    marker.setMap(null);
+  });
+  map.data.addListener('click', function (event) {
+    console.log(event);
+    marker.setMap(null);
+    infowin.close();
+    infowin.setContent('');
+    var sitename = event.feature.getProperty("site_name");
+    var proxy = event.feature.getProperty("proxy");
+    var co2 = event.feature.getProperty("co2_ppm");
+    var age = event.feature.getProperty("age_ma");
+    var references = event.feature.getProperty("references");
+    var maindiv = document.createElement("div");
+    maindiv.style.maxWidth = "200px";
+    maindiv.style.maxHeight = "200px";
+    maindiv.style.overflowY = "scroll";
+    if (sitename) {
+        div1 = document.createElement("div");
+        div1.innerHTML = "<b>Site Name:</b> "+ sitename;
+        maindiv.appendChild(div1);
+    }
+    if (proxy) {
+        div2 = document.createElement("div");
+        div2.innerHTML = "<b>Proxy:</b> "+ proxy;
+        maindiv.appendChild(div2);
+    }
+    if (co2) {
+        div3 = document.createElement("div");
+        div3.innerHTML = "<b>CO2:</b> "+ co2;
+        maindiv.appendChild(div3);
+    }
+    if (age) {
+        div4 = document.createElement("div");
+        div4.innerHTML = "<b>Age (Ma):</b> "+ age;
+        maindiv.appendChild(div4);
+    }
+    if (references) {
+        div5 = document.createElement("div");
+        div5.innerHTML = "<b>References:</b> "+ references;
+        maindiv.appendChild(div5);
+    }
+    infowin.setContent(maindiv);
+    marker.setPosition(event.latLng);
+    marker.setMap(map);
+    infowin.open(map,marker);
+  });
+  function selectPoint(latlon) {
+    marker.setMap(null);
+    infowin.close();
+    infowin.setContent('');
+    console.log(latlon)
+    map.data.forEach(function(feature){
+        console.log(feature);
+    });
+  }
+}
+</script>
+<style type="text/css">
+#custom-handle {
+  width: 0; 
+  height: 0; 
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  border-top: 10px solid #666;
+  background: none;
+}
+#age {
+  padding: 1px;
+  border-color: transparent;
+  background: none;
+  height: 0.2em;
+  margin: 0px 0px 0px 0px;
+}
+.ui-slider .ui-slider-range {
+  background: none;
+  border: none;
+}
+</style>
+<div id="idxcontent"></div>
+<div class="container">
+    <div class="row" style="margin-bottom:30px;">
+        <div class='col-xs-12'>
+            <ol class="breadcrumb">
+                <li><a href="/">Home</a></li>
+                <li class="active">Paleo Map View</li>
+            </ol>
+        </div>
+        <div style="margin-bottom: 20px;">
+            <div class='col-xs-12'>
+                <style>
+                .map-container {position: relative; padding-bottom: 60%; height: 0; max-width: 100%;}
+                #paleomap {position: absolute; top: 0; left: 0; width: 100%; height: 100%;}
+                </style>
+                <div>Use the timeline slider to adjust the paleomap. Select points on the map for more information. Paleogeography and model from <a href='https://www.earthbyte.org/paleomap-paleoatlas-for-gplates/'>Scotese, C.R., 2016</a></div>
+                <div><b>Current Age:</b> <span id="agevalue"></span></div>
+                <div id="age">
+                  <div id="custom-handle" class="ui-slider-handle"></div>
+                </div>
+                <div id="timeline_plot"></div>
+                <div class="map-container">
+                    <div id="paleomap"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

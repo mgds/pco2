@@ -6,6 +6,7 @@ class PlotGroup {
     this.content = d3.select(container_id);
     this.width = 0;
     this.height = 0;
+    this.div_subtract = 6
     this.dims = {};
     this.class_axis = {};
   }
@@ -32,7 +33,7 @@ class PlotGroup {
   }
   setSizeDynamic() {
     var self = this;
-    var divWidth = this.content.style('width').slice(0, -2) - 6;
+    var divWidth = this.content.style('width').slice(0, -2) - this.div_subtract;
     var divHeight = Math.round(divWidth/(this.width/this.height));
     this.container.attr("width",divWidth).attr("height",divHeight);
   }

@@ -1,5 +1,5 @@
 class PCO2PlotData {
-  constructor() {
+  constructor(product_plot) {
     this.data = { };
     this.domains = [
       [[70000,0],[0,10000]], //pco2 plot units kiloAnnum and ppm
@@ -28,6 +28,10 @@ class PCO2PlotData {
     this.pco2Plot = {
       "plotSrc" : ["data/Paleo-CO2_Plot.json"],
       "dataSrc" : "data/Paleo-CO2_Archive.json",
+      "dataSrcArchive" : "data/Paleo-CO2_Archive.json",
+      "dataSrcProduct" : "data/Paleo-CO2_Product.json",
+      "showArchive" : true,
+      "categories" : [1],
       "container_id" : "pco2Data",
       "xAxisLabel" : "Age (millions of years ago)",
       "yAxisLabel" : "Atmospheric CO<tspan class=\"sub\">2</tspan><tspan> (ppm)</tspan>",
@@ -61,6 +65,15 @@ class PCO2PlotData {
         }
       }
     };
+    if (product_plot) {
+      this.pco2Plot.plotSrc =["data/Paleo-CO2_ProductPlot.json","data/Paleo-CO2_Plot.json"];
+      this.pco2Plot.dataSrc = "data/Paleo-CO2_Product.json";
+      this.pco2Plot.showArchive = false;
+      this.domains = [
+        [[70000,0],[0,3500]], //pco2 plot units kiloAnnum and ppm
+        [[800,0],[5,35]] //temperature plot 2 units kiloAnnum and degC (other plots based on these dimensions)
+      ];
+    }
     this.tempPlot1 = {
       "plotSrc" : [ "data/tempWesterhold.json", "data/tempModern.json" ],
       "container_id" : "tempPlot1",

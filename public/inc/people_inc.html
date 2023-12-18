@@ -1,0 +1,108 @@
+<div id="idxcontent"></div>
+<div style="background-color:#b19f7e;width:100%;color:white;line-height:30px;margin-bottom:30px;">
+    <div class="container">
+            <div class="col-xs-12 text-left" style="background-color:#e5decf;color:#0c448b;font-size:24px;padding-top:20px;padding-bottom:20px;font-family:'Oswald'">
+                People
+            </div>
+    </div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class='col-xs-12'>
+            <ol class="breadcrumb">
+                <li><a href="/">Home</a></li>
+                <li class="active">People</li>
+            </ol>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12">
+            <form class="form-horizontal row row-zero-margin">
+                
+                <div class="form-group col-lg-4 col-sm-6" >
+                    <div><small>&nbsp;</small></div>
+                    <div class=" col-xs-12"><input type="text" class="form-control" id="searchResultsField" placeholder="Search People" ng-model="query"></div>
+                </div>
+                <div class="form-group col-lg-8 col-sm-12" >
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <div style="float:left;padding:3px;margin:0px 2px;border:1px solid gray;height:64px;">
+                                <div><small>Search by proxy:</small></div>
+                                <div class="experticons" style="margin-top:0px;">
+                                    <span ng-repeat="(key, proxy) in proxylist"><div ng-click="proxyClick($event)" data-value="{{key}}" class="proxybutton btn btn-secondary btn-sm {{proxy.bg}}"><img src="{{proxy.icon}}" alt="{{proxy.title}}" title="{{proxy.title}}"></div></span>
+                                </div>
+                            </div>
+                            <div style="float:left;padding:3px;margin:0px 2px;border:1px solid gray;height:64px;">
+                                <div><small>Search by Project Role:</small></div>
+                                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                    <button type="button" class="btn btn-secondary rolebutton active proxybuttonactive" ng-click="rolesClick($event)" data-value="">All</button>
+                                    <button type="button" class="btn btn-secondary rolebutton" ng-click="rolesClick($event)" data-value="Principal Investigator">Principal Investigator</button>
+                                    <button type="button" class="btn btn-secondary rolebutton" ng-click="rolesClick($event)" data-value="Project Postdoc">Project Postdoc</button>
+                                    <button type="button" class="btn btn-secondary rolebutton" ng-click="steeringClick($event)">Steering Committee</button>
+                                </div>
+                            </div>
+                            <div style="float:left;">
+                                <div><small>&nbsp;</small></div>
+                                
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--<div class="col-md-4 col-sm-6 form-group pull-right">
+                    <div class="col-xs-12">
+                        <div class="input-group">
+                        <select class="form-control selectpicker" ng-model="sortFunction" ng-change="sortChange()">
+                            <option value="yearSort">Sort by year</option>
+                            <option value="authorSort">Sort by author</option>
+                        </select>
+                        <span style="cursor:pointer" ng-click="reverse=!reverse" class="sortorder input-group-addon" ng-class="{reverse:reverse}"></span>
+                        </div>
+                    </div>
+                </div>-->
+            </form>
+        </div>
+        <div class="col-xs-12">
+            <div class="col-xs-12" style="margin-bottom:20px">
+                These proxy representatives
+                steer the vetting process of the archived paleo-CO<sub>2</sub> data. Any
+                questions or concerns about that process should best be addressed
+                to these individuals. Many more experts have contributed to
+                data compilation and discussion, as will be expressed by authorship
+                of the manuscript that is currently in preparation to document the
+                vetted data product. You can also <a href="/experts">view a list</a>  of the original
+                Cenozoic paleo-CO<sub>2</sub> project participant investigators.
+            </div>
+            <div class="col-xs-12">
+            <div class="col-xs-12 col-md-6" style="margin-bottom:10px;" ng-repeat="person in people | filter:proxyFilter | filter:query:ignoreAccents | orderBy:['steering_committee','last_name']">
+                <div class="row">
+                    
+                    <div class="row">
+                    <div class="col-xs-4" style="overflow:hidden;">
+                        <div style="position:relative; width: 100%; padding-top: 100%;">
+                            <img ng-if="person.pic_filename" style="width:100%;position:absolute;top:0;left:0;" src="/images/people/{{person.pic_filename}}" alt="">
+                            <img ng-if="!person.pic_filename" style="width:100%;position:absolute;top:0;left:0;" src="/images/blank-profile-pic.png" alt="">
+                        </div>
+                    </div>
+                    <div class="col-xs-8">
+                        <div class="row" style="padding-right:20px">
+                            <strong>{{person.first_name}} {{person.last_name}}</strong> <span ng-if="person.country_code" class="fi fi-{{person.country_code}}" title="{{person.country}}"></span> <a ng-if="person.website" href="{{person.website}}" target="_blank"><span class="glyphicon glyphicon-link"></span></a><br>
+                        <i>{{person.title}}</i><br>
+                        {{person.affiliation}}<br>
+                        <!--{{person.country}}<br>-->
+                        <div class="row">
+                            <div class="experticons col-xs-12" style="height:30px;">
+                                <a ng-repeat="proxy in person.proxyvals" href="{{proxy.url}}"><div class="{{proxy.bg}}"><img src="{{proxy.icon}}" alt="{{proxy.title}}"></div></a>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+</div>
+</div>
+        </div>
+<div>
+    </div>
+</div>

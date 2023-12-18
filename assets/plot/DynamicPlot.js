@@ -108,11 +108,13 @@ class DynamicPlot { // Container class for the dynamic subplot
     if (this.brush) this.zoomButton();
   }
   // Data
-  addData() { // Promise to retrieve data and call function to draw plot
+  addData(callbackf=false) { // Promise to retrieve data and call function to draw plot
     var self = this;
     Promise.all(this.data_files.map(x=>d3.json(x)))
       .then(function(data){self.data = data;})
-      .then(function(){self.makePlot();});
+      .then(function(){self.makePlot();})
+      .then(function(){if (callbackf) callbackf()});
+
   }
   // Brush
   brushFunction() { // The callback for the zoom brush

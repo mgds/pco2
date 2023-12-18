@@ -1,8 +1,10 @@
 var routes = {
   '/': { templateUrl: 'inc/index_inc.html', controller: 'indexView' },
+  '/product': { templateUrl: 'inc/product_inc.html', controller: 'indexView' },
   '/about': { templateUrl: 'inc/about_inc.html', controller: 'aboutView' },
   '/co2pip': { templateUrl: 'inc/co2pip_inc.html', controller: 'aboutView' },
   '/map': { templateUrl: 'inc/map_inc.html', controller: 'aboutView' },
+  '/paleomap': { templateUrl: 'inc/paleomap_inc.html', controller: 'paleoMapView' },
   '/dataProxies': { templateUrl: 'inc/dataProxies_inc.html', controller: 'aboutView' },
   '/proxiesPhytoplankton': { templateUrl: 'inc/phytoplankton_inc.html', controller: 'aboutView' },
   '/proxiesPaleosols': { templateUrl: 'inc/paleosols_inc.html', controller: 'aboutView' },
@@ -15,6 +17,7 @@ var routes = {
   '/sankey': { templateUrl: 'inc/sankey_inc.html', controller: 'sankeyView' },
   '/privacy': { templateUrl: 'inc/privacy_inc.html', controller: 'aboutView' },
   '/experts': { templateUrl: 'inc/expert_inc.html', controller: 'aboutView' },
+  '/people': { templateUrl: 'inc/people_inc.html', controller: 'peopleView' },
   '/references': { templateUrl: 'inc/references_inc.html', controller: 'refView' },
   '/contribute': { templateUrl: 'inc/contribute_inc.html', controller: 'aboutView' },
   '/faqs': { templateUrl: 'inc/faqs/faq_inc.html', controller: 'faqsView' },

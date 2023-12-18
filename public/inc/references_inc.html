@@ -56,7 +56,7 @@ Paleo-CO<sub>2</sub> References
               class="journalissue"
               ng-if="ref.volume && ref['journal-issue'] && ref['journal-issue']['issue']"
             >({{ref['journal-issue']['issue']}})</span><span
-              style="journalpages"
+              class="journalpages"
               ng-if="ref.page">, {{ref.page}}</span>.
           </span>
           <span class="refchapter" ng-if="ref.type=='chapter'">
@@ -71,7 +71,7 @@ Paleo-CO<sub>2</sub> References
               class="comma"
               ng-if="ref.volume && ref.page"
             >, </span><span
-              style="journalpages"
+              class="journalpages"
               ng-if="ref.page">{{ref.page}}</span>)</span>.
             <span class="refpublisher">{{ref['publisher-location']}}: {{ref['publisher']}}</span>
           </span>

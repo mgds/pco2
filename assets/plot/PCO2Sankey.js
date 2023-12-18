@@ -28,7 +28,7 @@ class PCO2Sankey extends PlotGroup {
       "Paleosols": {"color": "#7424A7", "class": "paleosols"},
       "Nahcolite": {"color": "#3D0F5A", "class": "nahcolite"}
     };
-    this.plt = new PCO2PlotData();
+    this.plt = new PCO2PlotData(false);
     this.data = {};
     this.rNodes = {};
     this.order = Object.keys(this.colors);

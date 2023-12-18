@@ -1,8 +1,16 @@
 class PCO2Plot extends PlotGroup { // Overall container class for plots
     constructor(container_id) {
-      super(container_id);
+      if (typeof container_id === "object") {
+        super(container_id.container_id);
+        this.container_id = container_id.container_id;
+        this.product_plot = container_id.product_plot;
+      } else {
+        super(container_id);
+        this.container_id = container_id;
+        this.product_plot = false;
+      }
       self = this;
-      this.plt = new PCO2PlotData();
+      this.plt = new PCO2PlotData(this.product_plot);
       this.class_axis = this.plt.pco2Plot.classAxis;
       this.product = true;
       //PLOT DOMAINS
@@ -26,7 +34,7 @@ class PCO2Plot extends PlotGroup { // Overall container class for plots
       //LEGEND
       this.legend = new Legend(this,this.plt.legend);
       //MAIN PLOT
-      this.pco2Plot = new ScatterPlot(this,this.plt.pco2Plot,this.legend);
+      this.pco2Plot = new ScatterPlot(this,this.plt.pco2Plot,this.legend, this.plt.pco2Plot.showArchive);
       this.pco2Plot.zoomCallback = function() {
         self.timeline1.zoomX(false);
         self.tempPlot1.zoomX(false);
@@ -91,8 +99,8 @@ class PCO2Plot extends PlotGroup { // Overall container class for plots
         self.pco2Plot.zoomY(false);
       };
       self.iceCorePlot.labelZoom.append("text")
-        .html("<tspan x=\"0\" dy=\"-6\">Mauna Loa</tspan><tspan dy=\"6\" x=\"0\">atmospheric data</dy>");
-      self.makeAnArrow(self.iceCorePlot.labelZoom,[[2, -6], [8, -2]]);
+        .html("<tspan x=\"0\" dy=\"-14\">Mauna Loa</tspan><tspan dy=\"6\" x=\"0\">atmospheric data</dy>");
+      self.makeAnArrow(self.iceCorePlot.labelZoom,[[2, -14], [8, -10]]);
     }
     makeAnArrow(obj,coords) {
       var markerSize = 3;
@@ -219,13 +227,19 @@ class PCO2Plot extends PlotGroup { // Overall container class for plots
       );
     }
     downloadData(format) {
-      d3.json(this.plt.pco2Plot.dataSrc)
+      var self = this;
+      var dataSrc = (self.pco2Plot.showArchive)?self.plt.pco2Plot.dataSrcArchive:self.plt.pco2Plot.dataSrcProduct;
+      d3.json(dataSrc)
         .then(function(data){
           var d_x = self.pco2Plot.x.domain();
           var d_y = self.pco2Plot.y.domain();
           var entries = self.pco2Plot.legend.entries;
           var filtered_data = data.filter(function(d){
-            return ((d.age!==null && d.co2!==null) &&//age and co2 values are defined
+            return ((d.age!==null && d.co2!==null) && //age and co2 values are defined
+              (
+                ("proxy_category" in d && !self.pco2Plot.showArchive && self.pco2Plot.categories.includes(parseInt(d.proxy_category))) || 
+                (!("proxy_category" in d) && self.pco2Plot.showArchive)
+              ) &&
               ( d.age<=d_x[0] && d.age>=d_x[1] && d.co2<=d_y[1] && d.co2>=d_y[0] ) && //age and co2 values are in current dynamic_plot domain
               entries[d.proxy].draw); //data proxy is switched on in the legend
           });
@@ -235,11 +249,7 @@ class PCO2Plot extends PlotGroup { // Overall container class for plots
     downloadFormatted(data,format){
       if (format === 'csv') {
         var out = [];
-        out.push(JSON.stringify(Object.keys(data[0])).replace(/(^\[)|(\]$)/mg, ''));
-        data.forEach(function(d){
-          out.push(JSON.stringify(Object.values(d)).replace(/(^\[)|(\]$)/mg, '').replace(/,null/mg, ',').replace('\\u00a0',''));
-        });
-        this.downloadFunction("data:text/csv;charset=utf-8,"+encodeURIComponent("\uFEFF"+unescape(out.join("\n"))),"age_co2_plot_data.csv");
+        this.downloadFunction("data:text/csv;charset=utf-8,"+encodeURIComponent("\uFEFF"+$.csv.fromObjects(data)),"age_co2_plot_data.csv");
       } else {
         this.downloadFunction("data:text/json,"+encodeURIComponent(JSON.stringify(data,null,4)),"age_co2_plot_data.json");
       }

@@ -9,6 +9,7 @@
 @plot_color_c3plants: #394B9F;
 @plot_color_paleosols: #7424A7;
 @plot_color_nahcolite: #3D0F5A;
+@plot_color_leaf_proxies: #4f5485;
 
 .tooltip {
   position: absolute;
@@ -189,7 +190,7 @@
       opacity: 0;
     }
     line {
-      stroke: gray;
+      stroke: #bbbbbb;
       stroke-width: 0.8px;
     }
   }
@@ -215,6 +216,35 @@
     &.c3plants {fill:@plot_color_c3plants}
     &.paleosols {fill:@plot_color_paleosols}
     &.nahcolite {fill:@plot_color_nahcolite}
+    &.leaf_proxies {fill:@plot_color_leaf_proxies}
+    &.category2 {
+      stroke-width:0.5px;
+      fill:white;
+      &.quarantined {stroke:@plot_color_quarantined}
+      &.phytoplankton {stroke:@plot_color_phytoplankton}
+      &.boron {stroke:@plot_color_boron}
+      &.stomatal {stroke:@plot_color_stomatal}
+      &.leafgas {stroke:@plot_color_leafgas}
+      &.liverworts {stroke:@plot_color_liverworts}
+      &.c3plants {stroke:@plot_color_c3plants}
+      &.paleosols {stroke:@plot_color_paleosols}
+      &.nahcolite {stroke:@plot_color_nahcolite}
+      &.leaf_proxies {stroke:@plot_color_leaf_proxies}
+    }
+    &.category3 {
+      stroke-width:0.5px;
+      fill:gray;
+      &.quarantined {stroke:@plot_color_quarantined}
+      &.phytoplankton {stroke:@plot_color_phytoplankton}
+      &.boron {stroke:@plot_color_boron}
+      &.stomatal {stroke:@plot_color_stomatal}
+      &.leafgas {stroke:@plot_color_leafgas}
+      &.liverworts {stroke:@plot_color_liverworts}
+      &.c3plants {stroke:@plot_color_c3plants}
+      &.paleosols {stroke:@plot_color_paleosols}
+      &.nahcolite {stroke:@plot_color_nahcolite}
+      &.leaf_proxies {stroke:@plot_color_leaf_proxies}
+    }
   }
   path {
     &.quarantined {stroke:@plot_color_quarantined}
@@ -226,5 +256,6 @@
     &.c3plants {stroke:@plot_color_c3plants}
     &.paleosols {stroke:@plot_color_paleosols}
     &.nahcolite {stroke:@plot_color_nahcolite}
+    &.leaf_proxies {stroke:@plot_color_leaf_proxies}
   }
 }
