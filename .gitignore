@@ -8,5 +8,6 @@
 /ansible
 /public/data
 /old
+/aws
 **/.DS_Store
 config.env

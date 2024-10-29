@@ -117,6 +117,56 @@ pco2Controllers.controller('indexView', [
   }
 ]);
 
+pco2Controllers.controller('phanView', [
+  '$scope','$timeout','ModalService',
+function($scope,  $timeout,  ModalService) {
+$timeout(function(){ $(".centralcontent").hide().fadeIn(500); }, 500);
+$scope.ageCO2Plot = new PhanerozoicPlot({"container_id": "#age_co2_plot_phan", "product_plot": false});
+$scope.categories = {
+1 : $scope.ageCO2Plot.pco2Plot.categories.includes(1),
+2 : $scope.ageCO2Plot.pco2Plot.categories.includes(2),
+3 : $scope.ageCO2Plot.pco2Plot.categories.includes(3),
+};
+$scope.archive = false;
+$scope.toggleErrorBars = function() {
+if ($scope.ageCO2Plot.pco2Plot.showBars) {
+  $scope.ageCO2Plot.hideUncertainties();
+} else {
+  $scope.ageCO2Plot.showUncertainties();
+}
+};
+var ageCO2Plot=$scope.ageCO2Plot;
+$scope.toggleArchive = function() {
+$scope.archive = $scope.ageCO2Plot.pco2Plot.toggleArchive();
+};
+$scope.toggleCategory = function(category) {
+$scope.categories[category] = $scope.ageCO2Plot.pco2Plot.toggleCategory(category);
+};
+$scope.showDownloadDialog = function(format) {
+ModalService.showModal({
+templateUrl: "/inc/modal_download.html",
+controller: 'downloadController',
+preClose: (modal) => {
+    modal.element.modal('hide');
+},
+inputs: {
+  title: "Terms of Use",
+  format: format,
+  ageCO2Plot: ageCO2Plot
+}
+}).then(function(modal) {
+modal.element.on('hidden.bs.modal', function () {
+    if (!modal.closed) {
+      modal.close.then(function(){});
+    }
+});
+modal.element.modal();
+modal.close.then(function() {});
+});
+};
+}
+]);
+
 pco2Controllers.controller('paleoMapView', [
           '$scope','$timeout','ModalService', '$window',
   function($scope,  $timeout,  ModalService, $window) {
